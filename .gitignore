@@ -1,0 +1,9 @@
+# vscode
+.vscode
+
+# object file
+*.o
+
+# execute file
+client
+server
