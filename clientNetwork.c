@@ -1,4 +1,4 @@
-#include "client.h"
+#include "clientNetwork.h"
 
 int makeSocket()
 {
@@ -33,16 +33,17 @@ void closeSocket(int sock, struct sockaddr_in* addr)
     free(addr);
 }
 
-void sendBuffer(int sock, struct sockaddr_in* addr, char* str, int size)
+void sendBuffer(int sock, struct sockaddr_in* addr, void* str, int size)
 {
     sendto(sock, str, size, 0, (struct sockaddr*)addr, sizeof(*addr));
 }
 
-void sendFile(int sock, struct sockaddr_in* addr, char* data, int size)
+void sendFile(int sock, struct sockaddr_in* addr, DataFile* file)
 {
     int i, c, end;
-    c = (size / BLOCK_SIZE);
-    end = ((size % BLOCK_SIZE) ? 1 : 0);
+    char* data = file->file;
+    c = (file->fileSize / BLOCK_SIZE);
+    end = ((file->fileSize % BLOCK_SIZE) ? 1 : 0);
 
     for (i = 0; i < c; i++)
     {
@@ -51,6 +52,11 @@ void sendFile(int sock, struct sockaddr_in* addr, char* data, int size)
 
     if (end)
     {
-        sendBuffer(sock, addr, &data[i * BLOCK_SIZE], size % BLOCK_SIZE);
+        sendBuffer(sock, addr, &data[i * BLOCK_SIZE], file->fileSize % BLOCK_SIZE);
     }
+}
+
+void sendFileMetadata(int sock, struct sockaddr_in* addr, FileMetadata* meta)
+{
+    sendBuffer(sock, addr, meta, sizeof(FileMetadata));
 }

@@ -5,6 +5,7 @@ int main(int argc, char* argv[])
     int sock;
     char* ip;
     struct sockaddr_in* server_addr;
+    FileMetadata meta;
     DataFile* file;
 
     if (argc < 2)
@@ -16,12 +17,17 @@ int main(int argc, char* argv[])
         ip = argv[1];
     }
 
+    scanf("%s", meta.fileName);
+    printf("%s\n", meta.fileName);
+
     sock = makeSocket();
     server_addr = connectSocket(ip, PORT);
 
-    file = readFile("client.c");
+    file = readFile(meta.fileName);
+    meta.size = file->fileSize;
 
-    sendFile(sock, server_addr, file->file, file->fileSize);
+    sendFileMetadata(sock, server_addr, &meta);
+    sendFile(sock, server_addr, file);
 
     closeSocket(sock, server_addr);
 

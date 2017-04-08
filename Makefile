@@ -25,13 +25,13 @@ client.o: client.c client.h clientNetwork.o clientFile.o
 serverFile.o: serverFile.c serverFile.h file.h
 	$(CC) -c serverFile.c $(CFLAGS)
 
-serverNetwork.o: serverNetwork.c serverNetwork.h network.h
+serverNetwork.o: serverNetwork.c serverNetwork.h network.h file.h
 	$(CC) -c serverNetwork.c $(CFLAGS)
 
-clientNetwork.o: clientNetwork.c clientNetwork.h network.h
+clientNetwork.o: clientNetwork.c clientNetwork.h network.h file.h
 	$(CC) -c clientNetwork.c $(CFLAGS)
 
-clientFile.o: clientFile.c clientFile.h
+clientFile.o: clientFile.c clientFile.h file.h
 	$(CC) -c clientFile.c $(CFLAGS)
 
 clean:
