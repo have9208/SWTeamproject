@@ -1,19 +1,21 @@
 #include "clientFile.h"
-
-datFile* readFile()
+int openFile(char *fileName)
 {
-    int fd,ret;
-    char buf[BUFF_SIZE];
-    datFile *fileBuf;
-    
-    fileBuf = (datFile*)malloc(sizeof(datFile));
-    memset(fileBuf,0,sizeof(datFile));
-    
-    fd = open("test.txt",O_RDONLY);
-    if(fd == -1)
+    int fd;
+    if(fd = open(fileName,O_RDONLY) < 0)
     {
         printf("open() error \n");
     }
+    
+    return fd;
+}
+
+int getFileSize(int fd)
+{
+    int ret;
+    char buf[BUFF_SIZE];
+    datFile size;
+    
     
     while(1)
     {
@@ -21,13 +23,28 @@ datFile* readFile()
         if(ret > 0)
         {
             printf("%d\n",ret);
-            fileBuf->fileSize += ret;
+            size.fileSize += ret;
         }
         else
         {
             break;
         }
     }
+    return size.fileSize;
+}
+datFile* readFile(char *fileName)
+{
+    int fd;
+    char buf[BUFF_SIZE];
+    datFile *fileBuf;
+    
+    fileBuf = (datFile*)malloc(sizeof(datFile));
+    memset(fileBuf,0,sizeof(datFile));
+    
+    fd = openFile(fileName);
+    
+    fileBuf->fileSize = getFileSize(fd);
+    
     
     fileBuf->file = (char*)malloc(sizeof(char)*fileBuf->fileSize);
     memset(fileBuf->file,0,sizeof(char)*fileBuf->fileSize);

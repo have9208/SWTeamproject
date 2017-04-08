@@ -15,6 +15,8 @@ typedef struct datFileType{
     int fileSize;
 }datFile;
 
+int getFileSize(int fd);
+int openFile(char *fileName);
 datFile* readFile();
 
 #endif
