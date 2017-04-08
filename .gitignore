@@ -10,3 +10,6 @@
 # execute file
 client
 server
+
+# CLION
+cmake-build-debug
