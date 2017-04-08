@@ -34,9 +34,3 @@ char *writeError()
     printf( "%s\n",ErrorMessage);
     return ErrorMessage;
 }
-
-int main()
-{
-    //None
-    return 0;
-}
