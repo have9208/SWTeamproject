@@ -5,7 +5,7 @@ int main(int argc, char* argv[])
     int sock;
     char* ip;
     struct sockaddr_in* server_addr;
-    datFile* file;
+    DataFile* file;
 
     if (argc < 2)
     {

@@ -14,7 +14,7 @@ int getFileSize(int fd)
 {
     int ret;
     char buf[BUFF_SIZE];
-    datFile size;
+    DataFile size;
     
     
     while(1)
@@ -32,14 +32,14 @@ int getFileSize(int fd)
     }
     return size.fileSize;
 }
-datFile* readFile(char *fileName)
+DataFile* readFile(char *fileName)
 {
     int fd;
     char buf[BUFF_SIZE];
-    datFile *fileBuf;
+    DataFile *fileBuf;
     
-    fileBuf = (datFile*)malloc(sizeof(datFile));
-    memset(fileBuf,0,sizeof(datFile));
+    fileBuf = (DataFile*)malloc(sizeof(DataFile));
+    memset(fileBuf,0,sizeof(DataFile));
     
     fd = openFile(fileName);
     
