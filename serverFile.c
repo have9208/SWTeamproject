@@ -16,7 +16,7 @@ void createFile(char *fileBuffer,char *fileName, int fileSize)
 int writeFile(char *fileBuffer,char *fileName, int fileSize)
 {
     int  fileDescriptor;
-    if ( 0 < ( fileDescriptor = open( fileName, O_WRONLY | O_CREAT | O_EXCL, 0644)))
+    if ( 0 < ( fileDescriptor = open( fileName, O_WRONLY | O_CREAT | O_APPEND, 0644)))
     {
         write( fileDescriptor, fileBuffer, fileSize);
         close(fileDescriptor);
