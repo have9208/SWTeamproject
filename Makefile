@@ -1,7 +1,7 @@
 # Makefile
 
 CC=gcc
-SOBJS=server.o serverNetwork.o
+SOBJS=server.o serverFile.o serverNetwork.o
 COBJS=client.o clientNetwork.o
 SOUT=server
 COUT=client
@@ -16,11 +16,14 @@ server: $(SOBJS)
 client: $(COBJS)
 	$(CC) -o $(COUT) $(COBJS) $(CFLAGS)
 
-server.o: server.c server.h serverNetwork.h
+server.o: server.c server.h serverFile.h serverNetwork.h
 	$(CC) -c server.c $(CFLAGS)
 
 client.o: client.c client.h clientNetwork.h
 	$(CC) -c client.c $(CFLAGS)
+
+serverFile.o: serverFile.c serverFile.h file.h
+	$(CC) -c serverFile.c $(CFLAGS)
 
 serverNetwork.o: serverNetwork.c serverNetwork.h network.h
 	$(CC) -c serverNetwork.c $(CFLAGS)
