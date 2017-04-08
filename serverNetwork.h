@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "network.h"
+#include "file.h"
 
 struct SocketInfo
 {

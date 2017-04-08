@@ -8,29 +8,19 @@ char *buffer[] = {
 
 int main(int argc, char *argv[])
 {
-    /*
     struct SocketInfo sockInfo;
+    FileMetadata fileMeta;
     char *buf;
     int size;
     
     serverSocket(&sockInfo);
 
+    receive(&sockInfo, (char *)&fileMeta, &size);
+
     while(receive(&sockInfo, buf, &size))
     {
-        //do something with file function(buf, size)
+        writeFile(buf, fileMeta.fileName, size);
     }
-    */
-
-    char *buf; 
-	char fileName = "test.txt";
-    int size;
-    printf("filename: %s\n",fileName);
-    for(int i=0; i<3; i++)
-    {
-        printf(buffer[i]);
-        size = strlen(buffer[i]);
-        writeFile(buffer[i], fileName, size);
-    }
-
+   
     return 0;
 }
