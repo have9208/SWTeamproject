@@ -18,7 +18,6 @@ int main(int argc, char* argv[])
     }
 
     scanf("%s", meta.fileName);
-    printf("%s\n", meta.fileName);
 
     sock = makeSocket();
     server_addr = connectSocket(ip, PORT);

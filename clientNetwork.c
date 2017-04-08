@@ -58,6 +58,5 @@ void sendFile(int sock, struct sockaddr_in* addr, DataFile* file)
 
 void sendFileMetadata(int sock, struct sockaddr_in* addr, FileMetadata* meta)
 {
-    printf("%d,%d:%s\n", meta->size, (int)sizeof(*meta), meta->fileName);
     sendBuffer(sock, addr, meta, sizeof(*meta));
 }
