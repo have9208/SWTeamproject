@@ -1,9 +1,12 @@
-#ifdef __SERVER_NETWORK__
-#define __SERVER_NETWORK__
+#ifdef __SERVER_NETWORK_H__
+#define __SERVER_NETWORK_H__
 
 #include "network.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
-void connect();
-char* receive();
+void serverSocket();
+char* receive(char *buffer, int *size);
 
-#endif
+#endif /*__SERVER_NETWORK_H__*/
