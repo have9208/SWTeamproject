@@ -4,9 +4,6 @@
 #include <string.h>        // strlen()
 #include <fcntl.h>         // O_WRONLY
 #include <unistd.h>        // write(), close()
-#include <sys/types.h>
-#include <sys/stat.h>
-
 
 void createFile(char *fileBuffer,char *fileName, int fileSize)
 {
@@ -18,12 +15,8 @@ void createFile(char *fileBuffer,char *fileName, int fileSize)
 
 int writeFile(char *fileBuffer,char *fileName, int fileSize)
 {
-	mkdir("./data/", 0777);
-	char pathFile[256] = "./data/";
-	strncat(pathFile,fileName,strlen(fileName));
     int  fileDescriptor;
-	
-    if ( 0 < ( fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)))
+    if ( 0 < ( fileDescriptor = open( fileName, O_WRONLY | O_CREAT | O_EXCL, 0644)))
     {
         write( fileDescriptor, fileBuffer, fileSize);
         close(fileDescriptor);
@@ -31,7 +24,7 @@ int writeFile(char *fileBuffer,char *fileName, int fileSize)
     }
     else
     {
-		fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_APPEND, 0644);
+		fileDescriptor = open( fileName, O_WRONLY | O_CREAT | O_TRUNC, 0644);
         write( fileDescriptor, fileBuffer, fileSize);
         close(fileDescriptor);
         return fileDescriptor;
