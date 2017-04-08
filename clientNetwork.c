@@ -33,9 +33,9 @@ void closeSocket(int sock, struct sockaddr_in* addr)
     free(addr);
 }
 
-void sendBuffer(int sock, struct sockaddr_in* addr, void* str, int size)
+void sendBuffer(int sock, struct sockaddr_in* addr, void* data, int size)
 {
-    sendto(sock, str, size, 0, (struct sockaddr*)addr, sizeof(*addr));
+    sendto(sock, data, size, 0, (struct sockaddr*)addr, sizeof(*addr));
 }
 
 void sendFile(int sock, struct sockaddr_in* addr, DataFile* file)
@@ -58,5 +58,6 @@ void sendFile(int sock, struct sockaddr_in* addr, DataFile* file)
 
 void sendFileMetadata(int sock, struct sockaddr_in* addr, FileMetadata* meta)
 {
-    sendBuffer(sock, addr, meta, sizeof(FileMetadata));
+    printf("%d,%d:%s\n", meta->size, (int)sizeof(*meta), meta->fileName);
+    sendBuffer(sock, addr, meta, sizeof(*meta));
 }

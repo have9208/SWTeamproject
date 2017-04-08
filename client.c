@@ -5,7 +5,7 @@ int main(int argc, char* argv[])
     int sock;
     char* ip;
     struct sockaddr_in* server_addr;
-    FileMetadata meta;
+    FileMetadata meta = { 0 };
     DataFile* file;
 
     if (argc < 2)

@@ -10,10 +10,11 @@
 
 #define BUFF_SIZE 1024
 
-typedef struct DataFileType{
+typedef struct DataFile
+{
     char *file;
     int fileSize;
-}DataFile;
+} DataFile;
 
 int getFileSize(int fd);
 int openFile(char *fileName);
