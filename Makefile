@@ -16,10 +16,10 @@ server: $(SOBJS)
 client: $(COBJS)
 	$(CC) -o $(COUT) $(COBJS) $(CFLAGS)
 
-server.o: server.c server.h serverNetwork.o
+server.o: server.c server.h serverNetwork.h
 	$(CC) -c server.c $(CFLAGS)
 
-client.o: client.c client.h clientNetwork.o
+client.o: client.c client.h clientNetwork.h
 	$(CC) -c client.c $(CFLAGS)
 
 serverNetwork.o: serverNetwork.c serverNetwork.h network.h
