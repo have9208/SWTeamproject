@@ -54,6 +54,7 @@ DataFile* readFile(char *fileName)
     {
         printf("read() error \n");
     }
-    
+    close(fileBuf->file);
+    close(fileBuf);
     return fileBuf;
 }
