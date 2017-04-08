@@ -30,7 +30,7 @@ void serverSocket(SocketInfo *sockInfo)
     sockInfo->addrLen = addrLen;
 }
 
-char* receive(SocketInfo *sockInfo, char *buffer, int *size)
+int receive(SocketInfo *sockInfo, char *buffer)
 {
     int nbyte = recvfrom(sockInfo->sockId, buffer, BLOCK_SIZE, 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
     
@@ -40,9 +40,7 @@ char* receive(SocketInfo *sockInfo, char *buffer, int *size)
         return NULL;
     }
 
-    *size = nbyte;
-
-    return buffer;
+    return nbyte;
 }
 
 FileMetadata receiveFileMetadata(SocketInfo *sockInfo)
