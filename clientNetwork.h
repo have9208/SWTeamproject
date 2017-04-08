@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "network.h"
-
 int makeSocket();
 struct sockaddr_in* connectSocket(char* ip, int port);
 void closeSocket(int sock, struct sockaddr_in* server_addr);
