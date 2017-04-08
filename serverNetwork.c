@@ -13,10 +13,10 @@ int serverSocket()
 	}
 
 	memset(&cliAddr, 0, addrLen);
-    memset(&servAddr, 0, addrLen);
+	memset(&servAddr, 0, addrLen);
 	servAddr.sin_family = AF_INET;
-    servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servAddr.sin_port = htons(PORT);
+	servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servAddr.sin_port = htons(PORT);
 
 	if(bind(sockId, (struct sockaddr *)&servAddr, addrLen) < 0)
 	{
