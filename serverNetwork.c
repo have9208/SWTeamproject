@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include "serverNetwork.h"
 
-void serverSocket(struct SocketInfo *sockInfo)
+void serverSocket(SocketInfo *sockInfo)
 {
     int sockId, addrLen = sizeof(struct sockaddr);
     if((sockId = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
@@ -30,7 +30,7 @@ void serverSocket(struct SocketInfo *sockInfo)
     sockInfo->addrLen = addrLen;
 }
 
-char* receive(struct SocketInfo *sockInfo, char *buffer, int *size)
+char* receive(SocketInfo *sockInfo, char *buffer, int *size)
 {
     int nbyte = recvfrom(sockInfo->sockId, buffer, BLOCK_SIZE, 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
     
@@ -45,7 +45,7 @@ char* receive(struct SocketInfo *sockInfo, char *buffer, int *size)
     return buffer;
 }
 
-FileMetadata receiveFileMetadata(struct SocketInfo *sockInfo)
+FileMetadata receiveFileMetadata(SocketInfo *sockInfo)
 {
     FileMetadata fileMeta;
     recvfrom(sockInfo->sockId, (char *)&fileMeta, sizeof(FileMetadata), 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));

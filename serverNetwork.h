@@ -13,10 +13,10 @@ typedef struct SocketInfo
     int addrLen;
     struct sockaddr_in servAddr;
     struct sockaddr_in cliAddr;
-};
+}SocketInfo;
 
-void serverSocket(struct SocketInfo *sockInfo);
-char* receive(struct SocketInfo *sockInfo, char *buffer, int *size);
-FileMetadata receiveFileMetadata(struct SocketInfo *sockInfo);
+void serverSocket(SocketInfo *sockInfo);
+char* receive(SocketInfo *sockInfo, char *buffer, int *size);
+FileMetadata receiveFileMetadata(SocketInfo *sockInfo);
 
 #endif /*__SERVER_NETWORK_H__*/
