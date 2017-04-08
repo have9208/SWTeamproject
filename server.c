@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
         currentSize = 0;
         fileMeta = receiveFileMetadata(&sockInfo);
 
-        while( size = receive(&sockInfo, buffer) )
+        while( size = receive(&sockInfo, buffer) >= 0  )
         {
             writeFile(buffer, fileMeta.fileName, size);
             currentSize += size;

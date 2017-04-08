@@ -37,7 +37,7 @@ int receive(SocketInfo *sockInfo, char *buffer)
     if(nbyte < 0)
     {
         perror("recvfrom fail");
-        return NULL;
+        return -1;
     }
 
     return nbyte;
