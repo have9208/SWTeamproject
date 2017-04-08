@@ -1,0 +1,12 @@
+# vscode
+.vscode
+
+# inteliJ
+.idea
+
+# object file
+*.o
+
+# execute file
+client
+server
