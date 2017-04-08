@@ -5,6 +5,7 @@ int main(int argc, char* argv[])
     int sock;
     char* ip;
     struct sockaddr_in* server_addr;
+    datFile* file;
 
     if (argc < 2)
     {
@@ -18,7 +19,9 @@ int main(int argc, char* argv[])
     sock = makeSocket();
     server_addr = connectSocket(ip, PORT);
 
-    // sendFile(sock, server_addr, file, sizeof(file));
+    file = readFile("client.c");
+
+    sendFile(sock, server_addr, file->file, file->fileSize);
 
     closeSocket(sock, server_addr);
 
