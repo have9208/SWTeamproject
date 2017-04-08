@@ -37,9 +37,6 @@ char *writeError()
 
 int main()
 {
-    char *Buffer = "123456789";
-    char *FileName = "test.txt";
-    int FileSize = strlen(Buffer);
-    createFile(Buffer,FileName,FileSize);
+    //None
     return 0;
 }
