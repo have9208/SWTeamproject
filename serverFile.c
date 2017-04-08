@@ -9,14 +9,14 @@ void createFile(char *fileBuffer,char *fileName, int fileSize)
 {
     if(!writeFile(fileBuffer,fileName,fileSize))
     {
-        writeError();
+        //writeError();
     }
 }
 
 int writeFile(char *fileBuffer,char *fileName, int fileSize)
 {
     int  fileDescriptor;
-    if ( 0 < ( fileDescriptor = open( fileName, O_WRONLY | O_CREAT | O_APPEND, 0644)))
+    if ( 0 < ( fileDescriptor = open( fileName, O_WRONLY | O_CREAT | O_EXCL, 0644)))
     {
         write( fileDescriptor, fileBuffer, fileSize);
         close(fileDescriptor);
@@ -24,13 +24,16 @@ int writeFile(char *fileBuffer,char *fileName, int fileSize)
     }
     else
     {
-        return 0;
+		fileDescriptor = open( fileName, O_WRONLY | O_CREAT | O_APPEND, 0644)))
+        write( fileDescriptor, fileBuffer, fileSize);
+        close(fileDescriptor);
+        return fileDescriptor;
     }
 }
 
 char *writeError()
 {
-    char *errorMessage = "[!] File Write Error";
+    char *errorMessage = "[!] File is already exist";
     printf( "%s\n",errorMessage);
     return errorMessage;
 }

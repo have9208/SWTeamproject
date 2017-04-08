@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
     */
 
     char *buf; 
+	char fileName = "test.txt";
     int size;
     printf("filename: %s\n",fileName);
     for(int i=0; i<3; i++)
