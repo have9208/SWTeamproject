@@ -7,16 +7,26 @@ int main(int argc, char *argv[])
     SocketInfo sockInfo;
     FileMetadata fileMeta;
     char buffer[BLOCK_SIZE+1];
-    int size;
+    int size, currentSize;
     
     serverSocket(&sockInfo);
 
-    fileMeta = receiveFileMetadata(&sockInfo);
-
-    while(receive(&sockInfo, buffer, &size))
+    while(1)
     {
-        writeFile(buffer, fileMeta.fileName, size);
+        currentSize = 0;
+        fileMeta = receiveFileMetadata(&sockInfo);
+
+        while( size = receive(&sockInfo, buffer) )
+        {
+            writeFile(buffer, fileMeta.fileName, size);
+            currentSize += size;
+
+            if(fileMeta.size <= currentSize){
+                break;
+            }
+        }
+        
     }
-   
+
     return 0;
 }
