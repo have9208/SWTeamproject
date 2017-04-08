@@ -17,6 +17,6 @@ typedef struct DataFileType{
 
 int getFileSize(int fd);
 int openFile(char *fileName);
-DateFile* readFile();
+DataFile* readFile();
 
 #endif
