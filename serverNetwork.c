@@ -6,7 +6,7 @@ char buf[BLOCK_SIZE+1];
 
 int serverSocket()
 {
-	if((sockId = socket(PF_INET, SOCK_DGRAM, 0) < 0)
+	if(sockId = socket(PF_INET, SOCK_DGRAM, 0) < 0)
 	{
 		perror("socket fail");
 		exit(0);
