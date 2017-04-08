@@ -24,7 +24,7 @@ int serverSocket()
 		exit(0);
 	}
 
-	return sockId
+	return sockId;
 }
 
 char* receive(char *buffer, int *size)
