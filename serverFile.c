@@ -5,22 +5,22 @@
 #include <fcntl.h>         // O_WRONLY
 #include <unistd.h>        // write(), close()
 
-void createFile(char *FileBuffer,char *FileName, int FileSize)
+void createFile(char *fileBuffer,char *fileName, int fileSize)
 {
-    if(!writeFile(FileBuffer,FileName,FileSize))
+    if(!writeFile(fileBuffer,fileName,fileSize))
     {
         writeError();
     }
 }
 
-int writeFile(char *FileBuffer,char *FileName, int FileSize)
+int writeFile(char *fileBuffer,char *fileName, int fileSize)
 {
-    int  FileDescriptor;
-    if ( 0 < ( FileDescriptor = open( FileName, O_WRONLY | O_CREAT | O_EXCL, 0644)))
+    int  fileDescriptor;
+    if ( 0 < ( fileDescriptor = open( fileName, O_WRONLY | O_CREAT | O_EXCL, 0644)))
     {
-        write( FileDescriptor, FileBuffer, FileSize);
-        close(FileDescriptor);
-        return FileDescriptor;
+        write( fileDescriptor, fileBuffer, fileSize);
+        close(fileDescriptor);
+        return fileDescriptor;
     }
     else
     {
@@ -30,7 +30,7 @@ int writeFile(char *FileBuffer,char *FileName, int FileSize)
 
 char *writeError()
 {
-    char *ErrorMessage = "[!] File Write Error";
-    printf( "%s\n",ErrorMessage);
-    return ErrorMessage;
+    char *errorMessage = "[!] File Write Error";
+    printf( "%s\n",errorMessage);
+    return errorMessage;
 }
