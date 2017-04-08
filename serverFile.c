@@ -24,7 +24,7 @@ int writeFile(char *fileBuffer,char *fileName, int fileSize)
     }
     else
     {
-		fileDescriptor = open( fileName, O_WRONLY | O_CREAT | O_APPEND, 0644);
+		fileDescriptor = open( fileName, O_WRONLY | O_CREAT | O_TRUNC, 0644);
         write( fileDescriptor, fileBuffer, fileSize);
         close(fileDescriptor);
         return fileDescriptor;
