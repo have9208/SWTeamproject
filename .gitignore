@@ -1,6 +1,9 @@
 # vscode
 .vscode
 
+# inteliJ
+.idea
+
 # object file
 *.o
 
