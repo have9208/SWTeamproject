@@ -10,3 +10,6 @@
 # execute file
 client
 server
+
+# receive data
+data
