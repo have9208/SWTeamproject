@@ -1,12 +1,20 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include "serverNetwork.h"
 
-struct sockaddr_in servAddr, cliAddr;
-int sockId, addrLen = sizeof(struct sockaddr);
 char buf[BLOCK_SIZE+1];
+struct sockaddr_in servAddr, cliAddr;
+int addrLen = sizeof(struct sockaddr);
 
 int serverSocket()
 {
-	if(sockId = socket(PF_INET, SOCK_DGRAM, 0) < 0)
+	int sockId;
+	if((sockId = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
 	{
 		perror("socket fail");
 		exit(0);
@@ -27,7 +35,7 @@ int serverSocket()
 	return sockId;
 }
 
-char* receive(char *buffer, int *size)
+char* receive(int sockId, char *buffer, int *size)
 {
 	int nbyte = recvfrom(sockId, buf, BLOCK_SIZE, 0, (struct sockaddr *)&cliAddr, &addrLen);
 	
