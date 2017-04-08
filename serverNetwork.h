@@ -16,7 +16,7 @@ typedef struct SocketInfo
 }SocketInfo;
 
 void serverSocket(SocketInfo *sockInfo);
-char* receive(SocketInfo *sockInfo, char *buffer, int *size);
+int receive(SocketInfo *sockInfo, char *buffer);
 FileMetadata receiveFileMetadata(SocketInfo *sockInfo);
 
 #endif /*__SERVER_NETWORK_H__*/
