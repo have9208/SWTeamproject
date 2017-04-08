@@ -7,7 +7,7 @@
 #include "network.h"
 #include "file.h"
 
-struct SocketInfo
+typedef struct SocketInfo
 {
     int sockId;
     int addrLen;
@@ -17,5 +17,6 @@ struct SocketInfo
 
 void serverSocket(struct SocketInfo *sockInfo);
 char* receive(struct SocketInfo *sockInfo, char *buffer, int *size);
+FileMetadata receiveFileMetadata(struct SocketInfo *sockInfo);
 
 #endif /*__SERVER_NETWORK_H__*/

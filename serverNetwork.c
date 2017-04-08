@@ -4,8 +4,6 @@
 #include <unistd.h>
 #include "serverNetwork.h"
 
-char buf[BLOCK_SIZE+1];
-
 void serverSocket(struct SocketInfo *sockInfo)
 {
     int sockId, addrLen = sizeof(struct sockaddr);
@@ -34,7 +32,7 @@ void serverSocket(struct SocketInfo *sockInfo)
 
 char* receive(struct SocketInfo *sockInfo, char *buffer, int *size)
 {
-    int nbyte = recvfrom(sockInfo->sockId, buf, BLOCK_SIZE, 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
+    int nbyte = recvfrom(sockInfo->sockId, buffer, BLOCK_SIZE, 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
     
     if(nbyte < 0)
     {
@@ -42,10 +40,14 @@ char* receive(struct SocketInfo *sockInfo, char *buffer, int *size)
         return NULL;
     }
 
-    buf[nbyte] = 0;
-
-    buffer = buf;
     *size = nbyte;
 
-    return buf;
+    return buffer;
+}
+
+FileMetadata receiveFileMetadata(struct SocketInfo *sockInfo)
+{
+    FileMetadata fileMeta;
+    recvfrom(sockInfo->sockId, (char *)&fileMeta, sizeof(FileMetadata), 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
+    return fileMeta;
 }

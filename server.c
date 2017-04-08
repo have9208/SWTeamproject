@@ -10,12 +10,12 @@ int main(int argc, char *argv[])
 {
     struct SocketInfo sockInfo;
     FileMetadata fileMeta;
-    char *buf;
+    char buf[BLOCK_SIZE+1];
     int size;
     
     serverSocket(&sockInfo);
 
-    receive(&sockInfo, (char *)&fileMeta, &size);
+    fileMeta = receiveFileMetadata(&sockInfo);
 
     while(receive(&sockInfo, buf, &size))
     {
