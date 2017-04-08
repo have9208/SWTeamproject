@@ -12,24 +12,24 @@ int openFile(char *fileName)
 
 int getFileSize(int fd)
 {
-    int ret;
+    int ret,size;
     char buf[BUFF_SIZE];
-    DataFile size;
     
+    size = 0;
     
     while(1)
     {
         ret=read(fd, buf, BUFF_SIZE);
         if(ret > 0)
         {
-            size.fileSize += ret;
+            size += ret;
         }
         else
         {
             break;
         }
     }
-    return size.fileSize;
+    return size;
 }
 DataFile* readFile(char *fileName)
 {
