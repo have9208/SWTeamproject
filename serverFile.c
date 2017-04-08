@@ -4,39 +4,43 @@
 #include <string.h>        // strlen()
 #include <fcntl.h>         // O_WRONLY
 #include <unistd.h>        // write(), close()
+#include <sys/types.h>
+#include <sys/stat.h>
 
-void createFile(char *FileBuffer,char *FileName, int FileSize)
+
+void createFile(char *fileBuffer,char *fileName, int fileSize)
 {
-    if(!writeFile(FileBuffer,FileName,FileSize))
+    if(!writeFile(fileBuffer,fileName,fileSize))
     {
-        writeError();
+        //writeError();
     }
 }
 
-int writeFile(char *FileBuffer,char *FileName, int FileSize)
+int writeFile(char *fileBuffer,char *fileName, int fileSize)
 {
-    int  FileDescriptor;
-    if ( 0 < ( FileDescriptor = open( FileName, O_WRONLY | O_CREAT | O_EXCL, 0644)))
+	mkdir("./data/", 0777);
+	char pathFile[256] = "./data/";
+	strncat(pathFile,fileName,strlen(fileName));
+    int  fileDescriptor;
+	
+    if ( 0 < ( fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)))
     {
-        write( FileDescriptor, FileBuffer, FileSize);
-        close(FileDescriptor);
-        return FileDescriptor;
+        write( fileDescriptor, fileBuffer, fileSize);
+        close(fileDescriptor);
+        return fileDescriptor;
     }
     else
     {
-        return 0;
+		fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        write( fileDescriptor, fileBuffer, fileSize);
+        close(fileDescriptor);
+        return fileDescriptor;
     }
 }
 
 char *writeError()
 {
-    char *ErrorMessage = "[!] File Write Error";
-    printf( "%s\n",ErrorMessage);
-    return ErrorMessage;
-}
-
-int main()
-{
-    //None
-    return 0;
+    char *errorMessage = "[!] File is already exist";
+    printf( "%s\n",errorMessage);
+    return errorMessage;
 }
