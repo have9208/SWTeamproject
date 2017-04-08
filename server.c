@@ -1,13 +1,14 @@
-#include <stdio.h>
 #include "server.h"
 
 int main(int argc, char *argv[])
 {
+    struct SocketInfo sockInfo;
     char *buf;
-    int pid, size;
-    int sockId = serverSocket();
+    int size;
+    
+    serverSocket(&sockInfo);
 
-    while(receive(sockId, buf, &size))
+    while(receive(&sockInfo, buf, &size))
     {
         //do something with file function(buf, size)
     }
