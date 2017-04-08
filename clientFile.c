@@ -21,7 +21,7 @@ datFile* readFile()
         if(ret > 0)
         {
             printf("%d\n",ret);
-            fileBuf->file_size += ret;
+            fileBuf->fileSize += ret;
         }
         else
         {
@@ -29,12 +29,12 @@ datFile* readFile()
         }
     }
     
-    fileBuf->file = (char*)malloc(sizeof(char)*fileBuf->file_size);
-    memset(fileBuf->file,0,sizeof(char)*fileBuf->file_size);
+    fileBuf->file = (char*)malloc(sizeof(char)*fileBuf->fileSize);
+    memset(fileBuf->file,0,sizeof(char)*fileBuf->fileSize);
     
     lseek(fd,0,SEEK_SET);
     
-    if(read(fd, fileBuf->file,fileBuf->file_size) == -1)
+    if(read(fd, fileBuf->file,fileBuf->fileSize) == -1)
     {
         printf("read() error \n");
     }
