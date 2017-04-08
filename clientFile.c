@@ -2,7 +2,7 @@
 int openFile(char *fileName)
 {
     int fd;
-    if(fd = open(fileName,O_RDONLY) < 0)
+    if((fd = open(fileName,O_RDONLY)) < 0)
     {
         printf("open() error \n");
     }
@@ -22,7 +22,6 @@ int getFileSize(int fd)
         ret=read(fd, buf, BUFF_SIZE);
         if(ret > 0)
         {
-            printf("%d\n",ret);
             size.fileSize += ret;
         }
         else
@@ -56,5 +55,5 @@ DataFile* readFile(char *fileName)
         printf("read() error \n");
     }
     
-    return 0;
+    return fileBuf;
 }
