@@ -10,7 +10,7 @@
 #include <sys/stat.h>
 
 void createFile(char *fileBuffer,char *fileName, int fileSize);
-int writeFile(char *fileBuffer,char *fileName, int fileSize);
+int writeFile(int fileDescriptor,char *fileBuffer,char *fileName, int fileSize);
 char *writeError();
 
 #define DBL_INT_ADD(a,b,c) if (a > 0xffffffff - (c)) ++b; a += c;
