@@ -55,6 +55,6 @@ FileMetadata receiveFileMetadata(SocketInfo *sockInfo)
 {
     FileMetadata fileMeta;
     //recvfrom(sockInfo->sockId, (char *)&fileMeta, sizeof(FileMetadata), 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
-    recv(sockInfo->cliSockId, (char *)&fileMeta, BLOCK_SIZE, 0);
+    recv(sockInfo->cliSockId, (char *)&fileMeta, sizeof(FileMetadata), 0);
     return fileMeta;
 }
