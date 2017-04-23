@@ -8,6 +8,7 @@
 #include <unistd.h>        // write(), close()
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "print.h"
 
 int checkFile(char *fileBuffer,char *fileName, int fileSize);
 int writeFile(int fileDescriptor,char *fileBuffer,char *fileName, int fileSize);
@@ -30,6 +31,5 @@ void sha256_transform(SHA256_CTX *ctx, unsigned char data[]);
 void sha256_init(SHA256_CTX *ctx);
 void sha256_update(SHA256_CTX *ctx, unsigned char data[], unsigned int len);
 void sha256_final(SHA256_CTX *ctx, unsigned char hash[]);
-void calculate_sha256(unsigned char data[], unsigned int len,unsigned char hash[]);
 
 #endif

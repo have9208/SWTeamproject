@@ -37,7 +37,7 @@ int writeFile(int fileDescriptor,char *fileBuffer,char *fileName, int fileSize)
     }
     else
     {
-        printError("File is already existed!");
+        //printError("File is already existed!");
     }
 }
 
@@ -165,10 +165,29 @@ void sha256_final(SHA256_CTX *ctx, unsigned char hash[])
    }  
 }  
 
-void calculate_sha256(unsigned char data[], unsigned int len,unsigned char hash[])
+int main()
 {
+    unsigned char data[256]= "testtest";
+    unsigned char hash[256] = "";
+    unsigned int len = 12;
+    
+    char test1[1024] = "1234";
+    char test2[1024] = "5678";
+    
     SHA256_CTX ctx;
     sha256_init(&ctx);
-    sha256_update(&ctx,data,len);
+
+    sha256_update(&ctx,test1,strlen(test1));
+    sha256_update(&ctx,test1,strlen(test2));
+
     sha256_final(&ctx,hash);
+    printf("hash : %s\n",hash);
+    printf("hex : ");
+         
+    for(int i=0;i<strlen(hash);i++)
+    {
+        printf("%02X",hash[i]);
+    }
+    printf("\n");
+    return 0;
 }
