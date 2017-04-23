@@ -1,50 +1,31 @@
-#include "serverFile.h"
+#include <stdio.h> 
 
-typedef struct SHA256_CTX
-{
-   unsigned char data[64];
-   unsigned int datalen;
-   unsigned int bitlen[2];
-   unsigned int state[8];
-};
+#define uchar unsigned char // 8-bit byte
+#define uint unsigned int // 32-bit word
 
-int checkFile(char *fileBuffer,char *fileName, int fileSize)
-{
-    int fileDescriptor;
-    mkdir("./data/", 0777);
-	char pathFile[256] = "./data/";
-	strncat(pathFile,fileName,strlen(fileName));
+// DBL_INT_ADD treats two unsigned ints a and b as one 64-bit integer and adds c to it
+#define DBL_INT_ADD(a,b,c) if (a > 0xffffffff - (c)) ++b; a += c;
+#define ROTLEFT(a,b) (((a) << (b)) | ((a) >> (32-(b))))
+#define ROTRIGHT(a,b) (((a) >> (b)) | ((a) << (32-(b))))
 
-    if ( 0 < ( fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)))
-    {
-        return fileDescriptor;
-    }
-    else
-    {
-        return fileDescriptor;
-    }
-}
+#define CH(x,y,z) (((x) & (y)) ^ (~(x) & (z)))
+#define MAJ(x,y,z) (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
+#define EP0(x) (ROTRIGHT(x,2) ^ ROTRIGHT(x,13) ^ ROTRIGHT(x,22))
+#define EP1(x) (ROTRIGHT(x,6) ^ ROTRIGHT(x,11) ^ ROTRIGHT(x,25))
+#define SIG0(x) (ROTRIGHT(x,7) ^ ROTRIGHT(x,18) ^ ((x) >> 3))
+#define SIG1(x) (ROTRIGHT(x,17) ^ ROTRIGHT(x,19) ^ ((x) >> 10))
 
-int writeFile(int fileDescriptor,char *fileBuffer,char *fileName, int fileSize)
-{
-	mkdir("./data/", 0777);
-	char pathFile[256] = "./data/";
-	strncat(pathFile,fileName,strlen(fileName));
+typedef struct {
+   uchar data[64];
+   uint datalen;
+   uint bitlen[2];
+   uint state[8];
+} SHA256_CTX;
 
-    if(fileDescriptor)
-    {
-        write( fileDescriptor, fileBuffer, fileSize);
-    }
-    else
-    {
-        printError("File is already existed!");
-    }
-}
-
-void sha256_transform(SHA256_CTX *ctx, unsigned char data[])
+void sha256_transform(SHA256_CTX *ctx, uchar data[])
 {  
-   unsigned int a,b,c,d,e,f,g,h,i,j,t1,t2,m[64];
-   unsigned int k[64] = 
+   uint a,b,c,d,e,f,g,h,i,j,t1,t2,m[64];
+   uint k[64] = 
    {
    0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
    0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
@@ -108,9 +89,9 @@ void sha256_init(SHA256_CTX *ctx)
    ctx->state[7] = 0x5be0cd19;
 }
 
-void sha256_update(SHA256_CTX *ctx, unsigned char data[], unsigned int len)
+void sha256_update(SHA256_CTX *ctx, uchar data[], uint len)
 {  
-   unsigned int t,i;
+   uint t,i;
    
    for (i=0; i < len; ++i) { 
       ctx->data[ctx->datalen] = data[i]; 
@@ -123,12 +104,13 @@ void sha256_update(SHA256_CTX *ctx, unsigned char data[], unsigned int len)
    }  
 }  
 
-void sha256_final(SHA256_CTX *ctx, unsigned char hash[])
+void sha256_final(SHA256_CTX *ctx, uchar hash[])
 {  
-   unsigned int i; 
+   uint i; 
    
    i = ctx->datalen; 
    
+   // Pad whatever data is left in the buffer. 
    if (ctx->datalen < 56) { 
       ctx->data[i++] = 0x80; 
       while (i < 56) 
@@ -142,6 +124,7 @@ void sha256_final(SHA256_CTX *ctx, unsigned char hash[])
       memset(ctx->data,0,56); 
    }  
    
+   // Append to the padding the total message's length in bits and transform. 
    DBL_INT_ADD(ctx->bitlen[0],ctx->bitlen[1],ctx->datalen * 8);
    ctx->data[63] = ctx->bitlen[0]; 
    ctx->data[62] = ctx->bitlen[0] >> 8; 
@@ -152,7 +135,9 @@ void sha256_final(SHA256_CTX *ctx, unsigned char hash[])
    ctx->data[57] = ctx->bitlen[1] >> 16;  
    ctx->data[56] = ctx->bitlen[1] >> 24; 
    sha256_transform(ctx,ctx->data);
- 
+   
+   // Since this implementation uses little endian byte ordering and SHA uses big endian,
+   // reverse all the bytes when copying the final state to the output hash. 
    for (i=0; i < 4; ++i) { 
       hash[i]    = (ctx->state[0] >> (24-i*8)) & 0x000000ff; 
       hash[i+4]  = (ctx->state[1] >> (24-i*8)) & 0x000000ff; 
@@ -165,10 +150,30 @@ void sha256_final(SHA256_CTX *ctx, unsigned char hash[])
    }  
 }  
 
-void calculate_sha256(unsigned char data[], unsigned int len,unsigned char hash[])
+void calculate_sha256(uchar data[], uint len,uchar hash[])
 {
     SHA256_CTX ctx;
     sha256_init(&ctx);
     sha256_update(&ctx,data,len);
     sha256_final(&ctx,hash);
+}
+
+int main()
+{
+    uchar data[256]= "testtesttest";
+    uchar hash[256] = "";
+    uint len = 12;
+
+    calculate_sha256(data,len,hash)
+
+    printf("hash : %s\n",hash);
+    printf("hex : ");
+        
+    for(int i=0;i<strlen(hash);i++)
+    {
+        printf("%02X",hash[i]);
+    }
+    printf("\n");
+
+    return 0;
 }
