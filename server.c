@@ -45,9 +45,9 @@ int main(int argc, char *argv[])
             while(1)
             {
                 currentSize = 0;
-                fileDescriptor = receiveFileMetadata(&sockInfo);
+                fileMeta = receiveFileMetadata(&sockInfo);
                 
-                mode = createFile(buffer, fileMeta.fileName, size);
+                fileDescriptor = createFile(buffer, fileMeta.fileName, size);
                 while( (size = receive(&sockInfo, buffer)) != -1  )
                 {
                     if(size == 0)
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
                         close(sockInfo.cliSockId);
                         return 0;
                     }
-                    writeFile(fileDescriptor,buffer, fileMeta.fileName, size);
+                    writeFile(buffer, fileMeta.fileName, size);
                     currentSize += size;
 
                     if(fileMeta.size <= currentSize){
