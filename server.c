@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
                         close(sockInfo.cliSockId);
                         return 0;
                     }
-                    writeFile(buffer, fileMeta.fileName, size);
+                    writeFile(fileDescriptor,buffer, fileMeta.fileName, size);
                     currentSize += size;
 
                     if(fileMeta.size <= currentSize){
