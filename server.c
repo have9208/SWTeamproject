@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
                 currentSize = 0;
                 fileMeta = receiveFileMetadata(&sockInfo);
                 
-                fileDescriptor = createFile(buffer, fileMeta.fileName, size);
+                fileDescriptor = checkFile(buffer, fileMeta.fileName, size);
                 while( (size = receive(&sockInfo, buffer)) != -1  )
                 {
                     if(size == 0)

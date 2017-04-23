@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-void createFile(char *fileBuffer,char *fileName, int fileSize);
+void checkFile(char *fileBuffer,char *fileName, int fileSize);
 int writeFile(int fileDescriptor,char *fileBuffer,char *fileName, int fileSize);
 char *writeError();
 
