@@ -45,6 +45,7 @@ void closeSocket(int sock, struct sockaddr_in* addr)
 
 void sendBuffer(int sock, struct sockaddr_in* addr, void* data, int size)
 {
+    // printf("%s", (char*)data); 
     send(sock, data, size, 0);
     // sendto(sock, data, size, 0, (struct sockaddr*)addr, sizeof(*addr));
 }
@@ -65,6 +66,8 @@ void sendFile(int sock, struct sockaddr_in* addr, DataFile* file)
     {
         sendBuffer(sock, addr, &data[i * BLOCK_SIZE], file->fileSize % BLOCK_SIZE);
     }
+
+    printNotice("send File end");
 }
 
 void sendFileMetadata(int sock, struct sockaddr_in* addr, FileMetadata* meta)
@@ -74,5 +77,21 @@ void sendFileMetadata(int sock, struct sockaddr_in* addr, FileMetadata* meta)
 
 void sendHash(int sock, struct sockaddr_in* addr, char* hash)
 {
+    printf("%s\n", hash);
     sendBuffer(sock, addr, hash, HASH_SIZE);
+}
+
+char* recvBuffer(int sock, struct sockaddr_in* addr, int size)
+{
+    char* buffer = (char*)malloc(size);
+    read(sock, buffer, size);
+    return buffer;
+}
+
+char recvResult(int sock, struct sockaddr_in* addr)
+{
+    char* buf = recvBuffer(sock, addr, 1);
+    char result = *buf;
+    free(buf);
+    return result;
 }

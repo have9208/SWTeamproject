@@ -22,4 +22,7 @@ void sendFile(int sock, struct sockaddr_in* addr, DataFile* file);
 void sendFileMetadata(int sock, struct sockaddr_in* addr, FileMetadata* meta);
 void sendHash(int sock, struct sockaddr_in* addr, char* hash);
 
+char* recvBuffer(int sock, struct sockaddr_in* addr, int size);
+char recvResult(int sock, struct sockaddr_in* addr);
+
 #endif /* CLIENT_NETWORK_H */
