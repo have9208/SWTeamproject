@@ -7,7 +7,8 @@
 void serverSocket(SocketInfo *sockInfo)
 {
     int sockId, addrLen = sizeof(struct sockaddr);
-    if((sockId = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
+    //if((sockId = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
+    if((sockId = socket(PF_INET, SOCK_STREAM, 0)) < 0)
     {
         perror("socket fail");
         exit(0);
@@ -26,28 +27,34 @@ void serverSocket(SocketInfo *sockInfo)
         exit(0);
     }
 
+    if(listen(sockId, 10) == -1)
+    {
+        perror("listen fail");
+        exit(0);
+    }
+
     sockInfo->sockId = sockId;
     sockInfo->addrLen = addrLen;
 }
 
-char* receive(SocketInfo *sockInfo, char *buffer, int *size)
+int receive(SocketInfo *sockInfo, char *buffer)
 {
-    int nbyte = recvfrom(sockInfo->sockId, buffer, BLOCK_SIZE, 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
-    
+    //int nbyte = recvfrom(sockInfo->sockId, buffer, BLOCK_SIZE, 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
+    int nbyte = recv(sockInfo->cliSockId, buffer, BLOCK_SIZE, 0);
     if(nbyte < 0)
     {
-        perror("recvfrom fail");
-        return NULL;
+        //perror("recvfrom fail");
+        perror("recv fail");
+        exit(0);
     }
 
-    *size = nbyte;
-
-    return buffer;
+    return nbyte;
 }
 
 FileMetadata receiveFileMetadata(SocketInfo *sockInfo)
 {
     FileMetadata fileMeta;
-    recvfrom(sockInfo->sockId, (char *)&fileMeta, sizeof(FileMetadata), 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
+    //recvfrom(sockInfo->sockId, (char *)&fileMeta, sizeof(FileMetadata), 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
+    recv(sockInfo->cliSockId, (char *)&fileMeta, sizeof(FileMetadata), 0);
     return fileMeta;
 }
