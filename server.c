@@ -8,6 +8,7 @@ int main(int argc, char *argv[])
     FileMetadata fileMeta;
     char buffer[BLOCK_SIZE+1];
     int size, currentSize;
+    int fileDescriptor;
     pid_t pid;
     
     serverSocket(&sockInfo);
@@ -44,8 +45,9 @@ int main(int argc, char *argv[])
             while(1)
             {
                 currentSize = 0;
-                fileMeta = receiveFileMetadata(&sockInfo);
-
+                fileDescriptor = receiveFileMetadata(&sockInfo);
+                
+                mode = createFile(buffer, fileMeta.fileName, size);
                 while( (size = receive(&sockInfo, buffer)) != -1  )
                 {
                     if(size == 0)
@@ -53,13 +55,14 @@ int main(int argc, char *argv[])
                         close(sockInfo.cliSockId);
                         return 0;
                     }
-                    writeFile(buffer, fileMeta.fileName, size);
+                    writeFile(fileDescriptor,buffer, fileMeta.fileName, size);
                     currentSize += size;
 
                     if(fileMeta.size <= currentSize){
                         break;
                     }
                 }
+                close(fileDescriptor);
             }
             break;
         }
