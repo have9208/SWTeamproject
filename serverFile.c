@@ -183,23 +183,3 @@ void calculate_sha256(unsigned char data[], unsigned int len,unsigned char hash[
     sha256_update(&ctx,data,len);
     sha256_final(&ctx,hash);
 }
-
-int main()
-{
-    unsigned char data[256]= "testtesttest";
-    unsigned char hash[256] = "";
-    unsigned int len = 12;
-
-    calculate_sha256(data,len,hash);
-
-    printf("hash : %s\n",hash);
-    printf("hex : ");
-        
-    for(int i=0;i<strlen(hash);i++)
-    {
-        printf("%02X",hash[i]);
-    }
-    printf("\n");
-
-    return 0;
-}
