@@ -71,3 +71,8 @@ void sendFileMetadata(int sock, struct sockaddr_in* addr, FileMetadata* meta)
 {
     sendBuffer(sock, addr, meta, sizeof(*meta));
 }
+
+void sendHash(int sock, struct sockaddr_in* addr, char* hash)
+{
+    sendBuffer(sock, addr, hash, HASH_SIZE);
+}

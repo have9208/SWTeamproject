@@ -48,6 +48,7 @@ int main(int argc, char* argv[])
 
     sendFileMetadata(sock, server_addr, &meta);
     sendFile(sock, server_addr, file);
+    sendHash(sock, server_addr, file->hash);
 
     closeSocket(sock, server_addr);
 

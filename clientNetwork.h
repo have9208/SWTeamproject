@@ -18,7 +18,8 @@ void connectTCP(int fd, struct sockaddr_in* addr);
 void closeSocket(int sock, struct sockaddr_in* server_addr);
 
 void sendBuffer(int sock, struct sockaddr_in* addr, void* data, int size);
-void sendFile(int sock, struct sockaddr_in* addr,  DataFile* file);
+void sendFile(int sock, struct sockaddr_in* addr, DataFile* file);
 void sendFileMetadata(int sock, struct sockaddr_in* addr, FileMetadata* meta);
+void sendHash(int sock, struct sockaddr_in* addr, char* hash);
 
 #endif /* CLIENT_NETWORK_H */

@@ -10,7 +10,6 @@
 #include "sha256.h"
 
 #define BUFF_SIZE 1024
-#define HASH_SIZE 32
 
 typedef struct DataFile
 {

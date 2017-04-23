@@ -15,7 +15,7 @@
 #define SIG0(x) (ROTRIGHT(x,7) ^ ROTRIGHT(x,18) ^ ((x) >> 3))
 #define SIG1(x) (ROTRIGHT(x,17) ^ ROTRIGHT(x,19) ^ ((x) >> 10))
 
-#define HASH_SIZE 32
+#define HASH_SIZE (32)
 
 typedef struct SHA256_CTX
 {
