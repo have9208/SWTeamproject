@@ -1,5 +1,4 @@
 #include "serverFile.h"
-#include "sha256.h"
 
 int checkFile(char *fileBuffer,char *fileName, int fileSize)
 {
