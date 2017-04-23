@@ -3,24 +3,45 @@
 int main(int argc, char* argv[])
 {
     int sock;
+    int opt;
     char* ip;
     struct sockaddr_in* server_addr;
     FileMetadata meta = { 0 };
     DataFile* file;
 
-    if (argc < 2)
+    char mode = 0;
+
+    while((opt = getopt(argc, argv, "l:f:")) != -1)
+    {
+        switch(opt)
+        { 
+            case 'l':
+                ip = malloc(sizeof(optarg));
+                strcpy(ip, optarg);
+                mode |= MODE_IP;
+                break; 
+            case 'f':
+                strcpy(meta.fileName, optarg);
+                mode |= MODE_FILE;
+                break;
+            default:
+                break;
+        }
+    } 
+
+    if (!(mode & MODE_IP))
     {
         ip = "127.0.0.1";
     }
-    else
-    {
-        ip = argv[1];
-    }
 
-    scanf("%s", meta.fileName);
+    if (!(mode & MODE_FILE))
+    {
+        printClientHelp(argv[0]);
+    }
 
     sock = makeSocket();
     server_addr = connectSocket(ip, PORT);
+    connectTCP(sock, server_addr);
 
     file = readFile(meta.fileName);
     meta.size = file->fileSize;

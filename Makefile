@@ -1,8 +1,8 @@
 # Makefile
 
 CC=gcc
-SOBJS=server.o serverFile.o serverNetwork.o
-COBJS=client.o clientNetwork.o clientFile.o
+SOBJS=server.o serverFile.o serverNetwork.o print.o
+COBJS=client.o clientNetwork.o clientFile.o print.o
 SOUT=server
 COUT=client
 CFLAGS=
@@ -33,6 +33,9 @@ clientNetwork.o: clientNetwork.c clientNetwork.h network.h file.h
 
 clientFile.o: clientFile.c clientFile.h file.h
 	$(CC) -c clientFile.c $(CFLAGS)
+
+print.o: print.c print.h
+	$(CC) -c print.c $(CFLAGS)
 
 clean:
 	rm -f $(SOBJS) $(COBJS) $(SOUT) $(COUT)
