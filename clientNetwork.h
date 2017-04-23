@@ -9,6 +9,9 @@
 #include "file.h"
 #include "print.h"
 
+#define MODE_IP (0x1)
+#define MODE_FILE (0x1 << 1)
+
 int makeSocket();
 struct sockaddr_in* connectSocket(char* ip, int port);
 void connectTCP(int fd, struct sockaddr_in* addr);
