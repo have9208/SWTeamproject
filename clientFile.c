@@ -14,7 +14,7 @@ DataFile* readFile(char *fileName)
     
     fileBuf->fileSize = getFileSize(fd);
     
-    ctx = gethash(fd,ctx,&fileBuf);
+    ctx = gethash(fd, ctx, fileBuf);
     sha256_final(&ctx,fileBuf->hash);
     
     fileBuf->file = (char*)malloc(sizeof(char)*fileBuf->fileSize);
