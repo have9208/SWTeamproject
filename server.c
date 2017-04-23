@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
                         return 0;
                     }
                     writeFile(fileDescriptor,buffer, fileMeta.fileName, size);
-                    ha256_update(&ctx,buffer,strlen(buffer));
+                    sha256_update(&ctx,buffer,strlen(buffer));
                     currentSize += size;
                     printNotice("load data");
 
