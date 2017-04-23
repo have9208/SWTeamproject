@@ -45,7 +45,7 @@ void closeSocket(int sock, struct sockaddr_in* addr)
 
 void sendBuffer(int sock, struct sockaddr_in* addr, void* data, int size)
 {
-    write(sock, data, size);
+    send(sock, data, size, 0);
     // sendto(sock, data, size, 0, (struct sockaddr*)addr, sizeof(*addr));
 }
 
