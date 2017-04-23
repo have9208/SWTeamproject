@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
                 
                 sha256_init(&ctx);
                 hash="";
-                while( (size = receive(&sockInfo, buffer)) != -1  )
+                while( (size = receive(&sockInfo, buffer)) != -1  && fileDescriptor != -1)
                 {
                     if(size == 0)
                     {
@@ -75,8 +75,12 @@ int main(int argc, char *argv[])
                         break;
                     }
                 }
+                if(fileDescriptor>0)
+                {
+                    close(fileDescriptor);
+                }
                 sha256_final(&ctx,hash);
-                close(fileDescriptor);
+                
             }
             break;
         }
