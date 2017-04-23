@@ -29,6 +29,6 @@ int writeFile(int fileDescriptor,char *fileBuffer,char *fileName, int fileSize)
     }
     else
     {
-        //printError("File is already existed!");
+        printError("File is already existed!");
     }
 }

@@ -1,13 +1,8 @@
 #ifndef __CLIENT_FILE_H__
 #define __CLIENT_FILE_H__
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include "sha256.h"
+#include "print.h"
 
 #define BUFF_SIZE 1024
 
