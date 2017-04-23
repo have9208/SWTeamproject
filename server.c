@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "server.h"
+#include "print.h"
 
 int main(int argc, char *argv[])
 {
@@ -34,20 +35,23 @@ int main(int argc, char *argv[])
 
         if( (sockInfo.cliSockId = accept(sockInfo.sockId, (struct sockaddr *)&(sockInfo.cliAddr), &(sockInfo.addrLen))) == -1 )
         {
-            printf("Accept error");
+            printError("Accept error");
             return 0;
         }
+
+        printNotice("Accept success");
 
         switch( (pid = fork()) )
         {
             case -1:
-            printf("cant fork error\n");
+            printError("cant fork error\n");
             return 0;
             case 0:
             while(1)
             {
                 currentSize = 0;
                 fileMeta = receiveFileMetadata(&sockInfo);
+                printNotice("fileMetaData load.");
                 
                 fileDescriptor = checkFile(buffer, fileMeta.fileName, size);
                 
@@ -57,14 +61,17 @@ int main(int argc, char *argv[])
                 {
                     if(size == 0)
                     {
+                        printNotice("Close client connection.");
                         close(sockInfo.cliSockId);
                         return 0;
                     }
                     writeFile(fileDescriptor,buffer, fileMeta.fileName, size);
                     ha256_update(&ctx,buffer,strlen(buffer));
                     currentSize += size;
+                    printNotice("load data");
 
                     if(fileMeta.size <= currentSize){
+                        printNotice("end load file");
                         break;
                     }
                 }
