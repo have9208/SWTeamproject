@@ -21,7 +21,7 @@ typedef struct SHA256_CTX
    unsigned int datalen;
    unsigned int bitlen[2];
    unsigned int state[8];
-}SHA256_CTX;
+} SHA256_CTX;
 
 
 void sha256_transform(SHA256_CTX *ctx, unsigned char data[]);
