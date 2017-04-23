@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 
     if (!(mode & MODE_FILE))
     {
-        printClientHelp();
+        printClientHelp(argv[0]);
     }
 
     sock = makeSocket();
