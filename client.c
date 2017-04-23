@@ -48,10 +48,10 @@ int main(int argc, char* argv[])
 
     sendFileMetadata(sock, server_addr, &meta);
     sendFile(sock, server_addr, file);
-    
+
     sendHash(sock, server_addr, file->hash);
 
-    if (recvResult(sock, server_addr))
+    if (!recvResult(sock, server_addr))
     {
         printError("Crash !!");
     }
