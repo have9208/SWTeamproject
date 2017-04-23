@@ -3,11 +3,12 @@
 int makeSocket()
 {
     int sock;
-    sock = socket(PF_INET, SOCK_DGRAM, 0);
+    // sock = socket(PF_INET, SOCK_DGRAM, 0);
+    sock = socket(AF_INET, SOCK_STREAM, 0);
 
     if (sock == -1)
     {
-        puts( "socket 생성 실패");
+        printError("socket 생성 실패");
         exit(1);
     }
 
@@ -23,8 +24,17 @@ struct sockaddr_in* connectSocket(char* ip, int port)
     server_addr->sin_family = AF_INET;
     server_addr->sin_port = htons(port);
     server_addr->sin_addr.s_addr= inet_addr(ip);
-    
+
     return server_addr;
+}
+
+void connectTCP(int fd, struct sockaddr_in* addr)
+{
+    if (connect(fd, (struct sockaddr *)addr, sizeof(struct sockaddr_in)) < 0)
+    {
+        printError("Connect error: ");
+        exit(0);
+    }
 }
 
 void closeSocket(int sock, struct sockaddr_in* addr)
@@ -35,7 +45,8 @@ void closeSocket(int sock, struct sockaddr_in* addr)
 
 void sendBuffer(int sock, struct sockaddr_in* addr, void* data, int size)
 {
-    sendto(sock, data, size, 0, (struct sockaddr*)addr, sizeof(*addr));
+    write(sock, data, size);
+    // sendto(sock, data, size, 0, (struct sockaddr*)addr, sizeof(*addr));
 }
 
 void sendFile(int sock, struct sockaddr_in* addr, DataFile* file)

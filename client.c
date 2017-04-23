@@ -21,6 +21,7 @@ int main(int argc, char* argv[])
 
     sock = makeSocket();
     server_addr = connectSocket(ip, PORT);
+    connectTCP(sock, server_addr);
 
     file = readFile(meta.fileName);
     meta.size = file->fileSize;

@@ -7,9 +7,11 @@
 #include "network.h"
 #include "clientFile.h"
 #include "file.h"
+#include "print.h"
 
 int makeSocket();
 struct sockaddr_in* connectSocket(char* ip, int port);
+void connectTCP(int fd, struct sockaddr_in* addr);
 void closeSocket(int sock, struct sockaddr_in* server_addr);
 
 void sendBuffer(int sock, struct sockaddr_in* addr, void* data, int size);
