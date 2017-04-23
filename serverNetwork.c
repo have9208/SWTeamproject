@@ -42,10 +42,11 @@ void serverSocket(SocketInfo *sockInfo)
     sockInfo->addrLen = addrLen;
 }
 
-int receive(SocketInfo *sockInfo, char *buffer)
+int receive(SocketInfo *sockInfo, char *buffer, int currentSize, int maxSize)
 {
     //int nbyte = recvfrom(sockInfo->sockId, buffer, BLOCK_SIZE, 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
-    int nbyte = recv(sockInfo->cliSockId, buffer, BLOCK_SIZE, 0);
+    int size = ((maxSize - currentSize) >= BLOCK_SIZE)? BLOCK_SIZE : maxSize - currentSize;
+    int nbyte = recv(sockInfo->cliSockId, buffer, size, 0);
     if(nbyte < 0)
     {
         //perror("recvfrom fail");
@@ -56,10 +57,36 @@ int receive(SocketInfo *sockInfo, char *buffer)
     return nbyte;
 }
 
+int blockSize()
+{
+    return BLOCK_SIZE;
+}
+
 FileMetadata receiveFileMetadata(SocketInfo *sockInfo)
 {
     FileMetadata fileMeta;
     //recvfrom(sockInfo->sockId, (char *)&fileMeta, sizeof(FileMetadata), 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
     recv(sockInfo->cliSockId, (char *)&fileMeta, sizeof(FileMetadata), 0);
     return fileMeta;
+}
+
+void receiveHash(SocketInfo *sockInfo, char *hash, int size)
+{
+    recv(sockInfo->cliSockId, hash, size, 0);
+    printNotice("load hash data.");
+}
+
+void sendIntegrity(SocketInfo *sockInfo, char boolean)
+{
+    printf("%d\n",boolean);
+    if(boolean == 0)
+    {
+        printNotice("integrity fail."); 
+    }
+    else
+    {
+        printNotice("integrity success."); 
+    }
+
+    send(sockInfo->cliSockId, &boolean, 1, 0);
 }

@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
     int size, currentSize;
     int fileDescriptor;
     SHA256_CTX ctx;
-    unsigned char hash[64];
+    unsigned char servHash[HASH_SIZE], cliHash[HASH_SIZE];
     pid_t pid;
     
     serverSocket(&sockInfo);
@@ -56,8 +56,8 @@ int main(int argc, char *argv[])
                     fileDescriptor = checkFile(buffer, fileMeta.fileName, size);
                     
                     sha256_init(&ctx);
-                    strcpy(hash, "");
-                    while( (size = receive(&sockInfo, buffer)) != -1  )
+                    strcpy(servHash, "");
+                    while( (size = receive(&sockInfo, buffer, currentSize, fileMeta.size)) != -1  )
                     {
                         if(size == 0)
                         {
@@ -66,7 +66,8 @@ int main(int argc, char *argv[])
                             return 0;
                         }
                         writeFile(fileDescriptor,buffer, fileMeta.fileName, size);
-                        sha256_update(&ctx,buffer,strlen(buffer));
+                        printNotice(buffer);
+                        sha256_update(&ctx,buffer, size);
                         currentSize += size;
                         printNotice("load data");
 
@@ -75,7 +76,9 @@ int main(int argc, char *argv[])
                             break;
                         }
                     }
-                    sha256_final(&ctx,hash);
+                    sha256_final(&ctx, servHash);
+                    receiveHash(&sockInfo, cliHash, HASH_SIZE);
+                    sendIntegrity(&sockInfo, (char)(memcmp(servHash, cliHash, HASH_SIZE) == 0));
                     close(fileDescriptor);
                 }
                 break;
