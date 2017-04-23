@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "serverNetwork.h"
+#include "print.h"
 
 void serverSocket(SocketInfo *sockInfo)
 {
@@ -23,15 +24,19 @@ void serverSocket(SocketInfo *sockInfo)
 
     if(bind(sockId, (struct sockaddr *)&(sockInfo->servAddr), addrLen) < 0)
     {
-        perror("bind fail");
+        printError("bind fail");
         exit(0);
     }
 
+    printNotice("Socket bind success.");
+
     if(listen(sockId, 10) == -1)
     {
-        perror("listen fail");
+        printError("listen fail");
         exit(0);
     }
+
+    printNotice("Socket listen start.");
 
     sockInfo->sockId = sockId;
     sockInfo->addrLen = addrLen;
@@ -44,7 +49,7 @@ int receive(SocketInfo *sockInfo, char *buffer)
     if(nbyte < 0)
     {
         //perror("recvfrom fail");
-        perror("recv fail");
+        printError("recv fail");
         exit(0);
     }
 
