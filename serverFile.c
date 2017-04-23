@@ -168,7 +168,7 @@ void sha256_final(SHA256_CTX *ctx, unsigned char hash[])
 int main()
 {
     unsigned char data[256]= "testtest";
-    unsigned char hash[256] = "";
+    unsigned char hash[64] = "";
     unsigned int len = 12;
     
     char test1[1024] = "1234";

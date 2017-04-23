@@ -9,6 +9,8 @@ int main(int argc, char *argv[])
     char buffer[BLOCK_SIZE+1];
     int size, currentSize;
     int fileDescriptor;
+    SHA256_CTX ctx;
+    unsigned char hash[64];
     pid_t pid;
     
     serverSocket(&sockInfo);
@@ -48,6 +50,9 @@ int main(int argc, char *argv[])
                 fileMeta = receiveFileMetadata(&sockInfo);
                 
                 fileDescriptor = checkFile(buffer, fileMeta.fileName, size);
+                
+                sha256_init(&ctx);
+                hash="";
                 while( (size = receive(&sockInfo, buffer)) != -1  )
                 {
                     if(size == 0)
@@ -56,12 +61,14 @@ int main(int argc, char *argv[])
                         return 0;
                     }
                     writeFile(fileDescriptor,buffer, fileMeta.fileName, size);
+                    ha256_update(&ctx,buffer,strlen(buffer));
                     currentSize += size;
 
                     if(fileMeta.size <= currentSize){
                         break;
                     }
                 }
+                sha256_final(&ctx,hash);
                 close(fileDescriptor);
             }
             break;
