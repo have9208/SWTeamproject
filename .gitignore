@@ -13,3 +13,6 @@ server
 
 # receive data
 data
+
+# CLION
+cmake-build-debug

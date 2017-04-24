@@ -1,7 +1,7 @@
 # Makefile
 
 CC=gcc
-SOBJS=server.o serverFile.o serverNetwork.o print.o
+SOBJS=server.o serverFile.o serverNetwork.o print.o sha256.o
 COBJS=client.o clientNetwork.o clientFile.o print.o sha256.o
 SOUT=server
 COUT=client
@@ -22,7 +22,7 @@ server.o: server.c server.h serverFile.o serverNetwork.o
 client.o: client.c client.h clientNetwork.o clientFile.o
 	$(CC) -c client.c $(CFLAGS)
 
-serverFile.o: serverFile.c serverFile.h file.h
+serverFile.o: serverFile.c serverFile.h file.h sha256.h
 	$(CC) -c serverFile.c $(CFLAGS)
 
 serverNetwork.o: serverNetwork.c serverNetwork.h network.h file.h
@@ -31,7 +31,7 @@ serverNetwork.o: serverNetwork.c serverNetwork.h network.h file.h
 clientNetwork.o: clientNetwork.c clientNetwork.h network.h file.h
 	$(CC) -c clientNetwork.c $(CFLAGS)
 
-clientFile.o: clientFile.c clientFile.h file.h sha256.h
+clientFile.o: clientFile.c clientFile.h file.h sha256.h print.h
 	$(CC) -c clientFile.c $(CFLAGS)
 
 print.o: print.c print.h
