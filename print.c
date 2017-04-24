@@ -34,3 +34,34 @@ void printClientHelp(char* name)
     
     exit(1);
 }
+
+void printSpeedByte(struct timeval start, struct timeval end, int size)
+{
+    long long byte;
+    char unit = '\0';
+    int rest = 0;
+
+    double p;
+
+    byte = end.tv_usec - start.tv_usec;
+    byte += ((end.tv_sec - start.tv_sec) * 1000000);
+    byte = size * (1000000 / byte);
+
+    if (byte >= 1024)
+    {
+        rest = byte % 1024;
+        byte /= 1024;
+        unit = 'K';
+    }
+
+    if (byte >= 1024)
+    {
+        rest = byte % 1024;
+        byte /= 1024;
+        unit = 'M';
+    }
+
+    p = byte + ((double)rest / 1024);
+
+    printf("%.1f%cB/s         \r", p, unit);
+}

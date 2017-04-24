@@ -10,4 +10,6 @@ void printAdd(char *msg);
 void printDelete(char *msg);
 void printClientHelp(char* name);
 
+void printSpeedByte(struct timeval start, struct timeval end, int size);
+
 #endif /* PRINT_H */

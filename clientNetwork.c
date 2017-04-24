@@ -98,18 +98,38 @@ void sendFileData(NetworkInfo* n, DataFile* file)
 {
     int i, c, end;
     char* data = file->file;
+    struct timeval after, before;
+
     c = (file->fileSize / BLOCK_SIZE);
     end = ((file->fileSize % BLOCK_SIZE) ? 1 : 0);
 
+    gettimeofday(&after, NULL);
+
     for (i = 0; i < c; i++)
     {
+        if (!(i % 100))
+        { 
+            before = after;
+        }
         sendBuffer(n, &data[i * BLOCK_SIZE], BLOCK_SIZE);
+
+        if (!(i % 100))
+        {
+            gettimeofday(&after, NULL);
+
+            printSpeedByte(before, after, BLOCK_SIZE);
+        }
     }
 
     if (end)
     {
         sendBuffer(n, &data[i * BLOCK_SIZE], file->fileSize % BLOCK_SIZE);
     }
+
+    before = after;
+    gettimeofday(&after, NULL);
+
+    printSpeedByte(before, after, BLOCK_SIZE);
 }
 
 void sendFileMetadata(NetworkInfo* n, FileMetadata* meta)
