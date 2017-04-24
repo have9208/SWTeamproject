@@ -3,11 +3,13 @@
 #include <string.h>
 #include <unistd.h>
 #include "serverNetwork.h"
+#include "print.h"
 
 void serverSocket(SocketInfo *sockInfo)
 {
     int sockId, addrLen = sizeof(struct sockaddr);
-    if((sockId = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
+    //if((sockId = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
+    if((sockId = socket(PF_INET, SOCK_STREAM, 0)) < 0)
     {
         perror("socket fail");
         exit(0);
@@ -22,32 +24,69 @@ void serverSocket(SocketInfo *sockInfo)
 
     if(bind(sockId, (struct sockaddr *)&(sockInfo->servAddr), addrLen) < 0)
     {
-        perror("bind fail");
+        printError("bind fail");
         exit(0);
     }
+
+    printNotice("Socket bind success.");
+
+    if(listen(sockId, 10) == -1)
+    {
+        printError("listen fail");
+        exit(0);
+    }
+
+    printNotice("Socket listen start.");
 
     sockInfo->sockId = sockId;
     sockInfo->addrLen = addrLen;
 }
 
-char* receive(SocketInfo *sockInfo, char *buffer, int *size)
+int receive(SocketInfo *sockInfo, char *buffer, int currentSize, int maxSize)
 {
-    int nbyte = recvfrom(sockInfo->sockId, buffer, BLOCK_SIZE, 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
-    
+    //int nbyte = recvfrom(sockInfo->sockId, buffer, BLOCK_SIZE, 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
+    int size = ((maxSize - currentSize) >= BLOCK_SIZE)? BLOCK_SIZE : maxSize - currentSize;
+    int nbyte = recv(sockInfo->cliSockId, buffer, size, 0);
     if(nbyte < 0)
     {
-        perror("recvfrom fail");
-        return NULL;
+        //perror("recvfrom fail");
+        printError("recv fail");
+        exit(0);
     }
 
-    *size = nbyte;
+    return nbyte;
+}
 
-    return buffer;
+int blockSize()
+{
+    return BLOCK_SIZE;
 }
 
 FileMetadata receiveFileMetadata(SocketInfo *sockInfo)
 {
     FileMetadata fileMeta;
-    recvfrom(sockInfo->sockId, (char *)&fileMeta, sizeof(FileMetadata), 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
+    //recvfrom(sockInfo->sockId, (char *)&fileMeta, sizeof(FileMetadata), 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
+    recv(sockInfo->cliSockId, (char *)&fileMeta, sizeof(FileMetadata), 0);
     return fileMeta;
+}
+
+void receiveHash(SocketInfo *sockInfo, char *hash, int size)
+{
+    recv(sockInfo->cliSockId, hash, size, 0);
+    printNotice("load hash data.");
+}
+
+void sendIntegrity(SocketInfo *sockInfo, char boolean)
+{
+    printf("%d\n",boolean);
+    if(boolean == 0)
+    {
+        printNotice("integrity fail."); 
+    }
+    else
+    {
+        printNotice("integrity success."); 
+    }
+
+    send(sockInfo->cliSockId, &boolean, 1, 0);
 }
