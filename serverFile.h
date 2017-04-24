@@ -8,9 +8,11 @@
 #include <unistd.h>        // write(), close()
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "print.h"
+#include "sha256.h"
 
-void createFile(char *fileBuffer,char *fileName, int fileSize);
-int writeFile(char *fileBuffer,char *fileName, int fileSize);
+int checkFile(char *fileBuffer,char *fileName, int fileSize);
+int writeFile(int fileDescriptor,char *fileBuffer,char *fileName, int fileSize);
 char *writeError();
 
 #define DBL_INT_ADD(a,b,c) if (a > 0xffffffff - (c)) ++b; a += c;
