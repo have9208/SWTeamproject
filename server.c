@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
     int size, currentSize;
     int fileDescriptor;
     SHA256_CTX ctx;
-    unsigned char hash[64];
+    unsigned char servHash[HASH_SIZE], cliHash[HASH_SIZE];
     pid_t pid;
     
     serverSocket(&sockInfo);
@@ -44,45 +44,44 @@ int main(int argc, char *argv[])
         switch( (pid = fork()) )
         {
             case -1:
-            printError("cant fork error\n");
-            return 0;
+                printError("cant fork error\n");
+                return 0;
             case 0:
-            while(1)
-            {
-                currentSize = 0;
-                fileMeta = receiveFileMetadata(&sockInfo);
-                printNotice("fileMetaData load.");
-                
-                fileDescriptor = checkFile(buffer, fileMeta.fileName, size);
-                
-                sha256_init(&ctx);
-                hash="";
-                while( (size = receive(&sockInfo, buffer)) != -1  && fileDescriptor != -1)
+                while(1)
                 {
-                    if(size == 0)
+                    currentSize = 0;
+                    fileMeta = receiveFileMetadata(&sockInfo);
+                    printNotice("fileMetaData load.");
+                    
+                    fileDescriptor = checkFile(buffer, fileMeta.fileName, size);
+                    
+                    sha256_init(&ctx);
+                    strcpy(servHash, "");
+                    while( (size = receive(&sockInfo, buffer, currentSize, fileMeta.size)) != -1  )
                     {
-                        printNotice("Close client connection.");
-                        close(sockInfo.cliSockId);
-                        return 0;
-                    }
-                    writeFile(fileDescriptor,buffer, fileMeta.fileName, size);
-                    sha256_update(&ctx,buffer,strlen(buffer));
-                    currentSize += size;
-                    printNotice("load data");
+                        if(size == 0)
+                        {
+                            printNotice("Close client connection.");
+                            close(sockInfo.cliSockId);
+                            return 0;
+                        }
+                        writeFile(fileDescriptor,buffer, fileMeta.fileName, size);
+                        printNotice(buffer);
+                        sha256_update(&ctx,buffer, size);
+                        currentSize += size;
+                        printNotice("load data");
 
-                    if(fileMeta.size <= currentSize){
-                        printNotice("end load file");
-                        break;
+                        if(fileMeta.size <= currentSize){
+                            printNotice("end load file");
+                            break;
+                        }
                     }
-                }
-                if(fileDescriptor>0)
-                {
+                    sha256_final(&ctx, servHash);
+                    receiveHash(&sockInfo, cliHash, HASH_SIZE);
+                    sendIntegrity(&sockInfo, (char)(memcmp(servHash, cliHash, HASH_SIZE) == 0));
                     close(fileDescriptor);
                 }
-                sha256_final(&ctx,hash);
-                
-            }
-            break;
+                break;
         }
         
     }

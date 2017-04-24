@@ -7,13 +7,22 @@
 #include "network.h"
 #include "clientFile.h"
 #include "file.h"
+#include "print.h"
+
+#define MODE_IP (0x1)
+#define MODE_FILE (0x1 << 1)
 
 int makeSocket();
 struct sockaddr_in* connectSocket(char* ip, int port);
+void connectTCP(int fd, struct sockaddr_in* addr);
 void closeSocket(int sock, struct sockaddr_in* server_addr);
 
 void sendBuffer(int sock, struct sockaddr_in* addr, void* data, int size);
-void sendFile(int sock, struct sockaddr_in* addr,  DataFile* file);
+void sendFile(int sock, struct sockaddr_in* addr, DataFile* file);
 void sendFileMetadata(int sock, struct sockaddr_in* addr, FileMetadata* meta);
+void sendHash(int sock, struct sockaddr_in* addr, char* hash);
+
+char* recvBuffer(int sock, struct sockaddr_in* addr, int size);
+char recvResult(int sock, struct sockaddr_in* addr);
 
 #endif /* CLIENT_NETWORK_H */
