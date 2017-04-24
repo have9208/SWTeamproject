@@ -1,16 +1,21 @@
+/**************************************
+
+sha256.h : sha256 알고리즘 관련 헤더 파일
+Struct DataFile : 파일, 파일 사이즈, 해쉬 값을 클라이언트 서버쪽에 넘겨주기 위한 구조체
+getFileSize() : 클라이언트 서버쪽에 넘겨주기 위한 파일 사이즈를 구하기 위한 함수
+openFile() : 파일을 오픈하는 함수
+readFile() : clientFile의 메인이 되는 함수
+gethash() : sha256.h를 이용해 해쉬값을 얻어내는 함수
+
+**************************************/
+
 #ifndef __CLIENT_FILE_H__
 #define __CLIENT_FILE_H__
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include "sha256.h"
+#include "print.h"
 
 #define BUFF_SIZE 1024
-#define HASH_SIZE 32
 
 typedef struct DataFile
 {

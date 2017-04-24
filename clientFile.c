@@ -14,7 +14,7 @@ DataFile* readFile(char *fileName)
     
     fileBuf->fileSize = getFileSize(fd);
     
-    ctx = gethash(fd,ctx,&fileBuf);
+    ctx = gethash(fd, ctx, fileBuf);
     sha256_final(&ctx,fileBuf->hash);
     
     fileBuf->file = (char*)malloc(sizeof(char)*fileBuf->fileSize);
@@ -24,7 +24,7 @@ DataFile* readFile(char *fileName)
     
     if(read(fd, fileBuf->file,fileBuf->fileSize) == -1)
     {
-        printf("read() error \n");
+        printError("read() error \n");
     }
     
     close(fd);
@@ -59,7 +59,7 @@ int openFile(char *fileName)
     int fd;
     if((fd = open(fileName,O_RDONLY)) < 0)
     {
-        printf("open() error \n");
+        printError("open() error \n");
     }
     
     return fd;
