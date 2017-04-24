@@ -7,4 +7,4 @@
 * make 4.1
 
 ## 필수 설치 요소
-*libssl-dev
+* libssl-dev
