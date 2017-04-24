@@ -29,6 +29,8 @@ void printClientHelp(char* name)
     printf("Usage: %s\n", name);
     puts("  -l: Listenr server IP");
     puts("  -f: File name and directory name");
+    puts("  -p: Sending protocol (default: UDP)");
+    puts("      UDP or TCP select");
     
     exit(1);
 }
