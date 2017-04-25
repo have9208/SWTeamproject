@@ -58,6 +58,11 @@ MetaDir* list_directory (char* dirname)
     return dirBuf;
 }
 
+void closeDirectory(MetaDir* dir)
+{
+    free(dir);
+}
+
 DataFile* readFile(char *fileName)
 {
     int fd;

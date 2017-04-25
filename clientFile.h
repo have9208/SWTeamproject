@@ -40,4 +40,5 @@ int openFile(char *fileName);
 DataFile* readFile();
 SHA256_CTX gethash(int fd,SHA256_CTX crt,DataFile *fileBuf);
 MetaDir* list_directory (char* dirname);
+void closeDirectory(MetaDir* dir);
 #endif
