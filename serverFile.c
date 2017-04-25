@@ -6,10 +6,9 @@ void checkFile(RecievedDataInfo *RDI)
     char mkdirCmd[256] = "mkdir -p ";
     if (strcmp(RDI->fileMeta.parent,""))
     {
-        char slashAddedFileName="/";
-        strcat(slashAddedFileName,RDI->fileMeta.fileName);
-        RDI->fileMeta.fileName = slashAddedFileName;
+        strcat(pathFile,"/");
     }
+    
     //TO DO
     //Directory Temp Path
     strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
