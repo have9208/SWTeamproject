@@ -153,15 +153,14 @@ void sendFileData(NetworkInfo* n, DataFile* file)
     c = (file->fileSize / BLOCK_SIZE);
     end = ((file->fileSize % BLOCK_SIZE) ? 1 : 0);
 
-    usleep(5000);
 
     gettimeofday(&after, NULL);
     gettimeofday(&start, NULL);
 
     for (i = 0; i < c; i++)
     {
-        usleep(250);
-        if (!(i % 30))
+        usleep(30);
+        if (!(i % 40))
         { 
             before = after;
         }
@@ -169,7 +168,7 @@ void sendFileData(NetworkInfo* n, DataFile* file)
         size += BLOCK_SIZE;
         now += BLOCK_SIZE;
 
-        if (!(i % 30))
+        if (!(i % 40))
         {
             gettimeofday(&after, NULL);
             printSpeedByte(before, after, size, now, file->fileSize);
@@ -184,12 +183,10 @@ void sendFileData(NetworkInfo* n, DataFile* file)
         now += BLOCK_SIZE;
     }
 
-    before = after;
     gettimeofday(&after, NULL);
 
     printSpeedByte(start, after, file->fileSize, now, file->fileSize);
     puts("");
-    // printNotice("data send end");
 }
 
 void sendFileMetadata(NetworkInfo* n, FileMetadata* meta)
