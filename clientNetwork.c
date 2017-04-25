@@ -110,6 +110,8 @@ void sendFile(NetworkInfo* n, char* parent, char* fileName)
         {
             printNotice("Success !!");
         }
+
+        closeDataFile(file);
     }
 }
 

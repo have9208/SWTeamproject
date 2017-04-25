@@ -123,8 +123,14 @@ MetaDir* listDirectory(char* dirName)
     return dir;
 }
 
+void closeDataFile(DataFile* data)
+{
+    free(data->file);
+}
+
 void closeDirectory(MetaDir* dir)
 {
+    free(dir->files);
     free(dir);
 }
 

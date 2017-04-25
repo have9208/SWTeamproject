@@ -42,6 +42,8 @@ DataFile* readFile();
 SHA256_CTX gethash(int fd,SHA256_CTX crt,DataFile *fileBuf);
 MetaDir* listDirectory(char* dirName);
 int getDirectoryLength(char *dirName);
+
+void closeDataFile(DataFile* data);
 void closeDirectory(MetaDir* dir);
 bool isDir(char *fileName);
 #endif
