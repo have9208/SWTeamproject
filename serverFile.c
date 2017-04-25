@@ -6,7 +6,6 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     char mkdirCmd[256] = "mkdir -p ";
     sha256_init(ctx);
     strcpy(RDI->servHash, "");
-    //  printf("00000000\n");
     //TO DO
     //Directory Temp Path
     strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));

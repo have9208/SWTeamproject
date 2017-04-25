@@ -5,7 +5,7 @@ int makeSocket(enum NetworkProtocol p)
     int sock;
     if (p == UDP)
     {
-        sock = socket(PF_INET, SOCK_DGRAM, 0);
+        sock = socket(AF_INET, SOCK_DGRAM, 0);
     }
     else if (p == TCP)
     {
@@ -117,7 +117,13 @@ void sendFile(NetworkInfo* n, char* parent, char* fileName)
             strcpy(meta.fileName, fileName);
             strcpy(meta.parent, parent);
             meta.size = file->fileSize;
-            meta.type = FILE_TYPE; 
+            meta.type = FILE_TYPE;
+
+            if (meta.size == 0)
+            {
+                meta.size = 1;
+                file->file[0] = '\0';
+            }
 
             sendFileMetadata(n, &meta);
             sendFileData(n, file);
@@ -129,7 +135,7 @@ void sendFile(NetworkInfo* n, char* parent, char* fileName)
             }
             else
             {
-                printNotice("Success !!");
+                // printNotice("Success !!");
             }
 
             closeDataFile(file);
@@ -147,12 +153,15 @@ void sendFileData(NetworkInfo* n, DataFile* file)
     c = (file->fileSize / BLOCK_SIZE);
     end = ((file->fileSize % BLOCK_SIZE) ? 1 : 0);
 
+    usleep(5000);
+
     gettimeofday(&after, NULL);
     gettimeofday(&start, NULL);
 
     for (i = 0; i < c; i++)
     {
-        if (!(i % 66))
+        usleep(250);
+        if (!(i % 30))
         { 
             before = after;
         }
@@ -160,7 +169,7 @@ void sendFileData(NetworkInfo* n, DataFile* file)
         size += BLOCK_SIZE;
         now += BLOCK_SIZE;
 
-        if (!(i % 66))
+        if (!(i % 30))
         {
             gettimeofday(&after, NULL);
             printSpeedByte(before, after, size, now, file->fileSize);
@@ -190,6 +199,7 @@ void sendFileMetadata(NetworkInfo* n, FileMetadata* meta)
 
 void sendHash(NetworkInfo* n, unsigned char* hash)
 {
+    usleep(500);
     sendBuffer(n, hash, HASH_SIZE);
 }
 
@@ -204,7 +214,7 @@ char* recvBuffer(NetworkInfo* n, int size)
     }
     else
     {
-        recvfrom(n->sock, buffer, size, 0 ,(struct sockaddr*)&n->addr, &addr_size);
+        recvfrom(n->sock, buffer, size, 0, NULL, NULL);
     }
     return buffer;
 }

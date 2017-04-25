@@ -15,11 +15,12 @@ gethash() : sha256.h를 이용해 해쉬값을 얻어내는 함수
 #include "sha256.h"
 #include "print.h"
 #include "file.h"
+#include "network.h"
 #include <dirent.h>
 #include <sys/stat.h>
 #include <stdbool.h>
 
-#define BUFF_SIZE 1024
+#define BUFF_SIZE (BLOCK_SIZE)
 
 typedef struct DataFile
 {
