@@ -30,8 +30,17 @@ int writeFile(RecievedDataInfo *RDI,int fileDescriptor,char *fileBuffer,char *fi
     if(RDI->fileMeta.size <= RDI->currentSize)
     {
         sha256_final(&RDI->ctx, RDI->servHash);
+        RDI->type=META;
         printNotice("end load file");
         return 0;
     }
     return 1;
+}
+void deleteFile(char *directoryPath, char *fileName)
+{
+    char pathFile[256] = "data/";
+    strncat(pathFile,directoryPath,strlen(directoryPath));
+	strncat(pathFile,fileName,strlen(fileName));
+    printError("Hash Error : recieved file is deleted");
+    remove(pathFile);
 }

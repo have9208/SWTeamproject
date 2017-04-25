@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
     int size, currentSize;
     int fileDescriptor;
     RecievedDataInfo RDI;
-    unsigned char servHash[HASH_SIZE], cliHash[HASH_SIZE];
+    //unsigned char servHash[HASH_SIZE], cliHash[HASH_SIZE];
     pid_t pid;
     
     serverSocket(&sockInfo);
