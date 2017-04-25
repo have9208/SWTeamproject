@@ -153,14 +153,6 @@ int receiveData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     dataInfo->currentSize += nbyte;
 
     printAdd("load data");
-    
-    if( (remainterSize -= nbyte) <= 0 )
-    {
-
-        printDelete("change INTE");
-        dataInfo->type = INTE;
-        printNotice("end load data");
-    }
 
     return nbyte;
 }

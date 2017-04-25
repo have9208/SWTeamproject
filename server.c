@@ -36,21 +36,18 @@ int main(int argc, char *argv[])
                 printNotice("Close client connection.");
             }
 
-            if(dataInfo.type == INTE)
+            if(dataInfo.type == META)
+            {
+                checkFile(&dataInfo);
+            }
+            else if(dataInfo.type == DATA)
+            {
+                // printNotice(dataInfo.buffer);
+                writeFile(&ctx,&dataInfo);
+            }
+            else if(dataInfo.type == INTE)
             {
                 sendIntegrity(&sockInfo, &dataInfo);
-            }
-            else
-            {
-                if(dataInfo.type == META)
-                {
-                    checkFile(&dataInfo);
-                }
-                else
-                {
-                    // printNotice(dataInfo.buffer);
-                    writeFile(&ctx,&dataInfo);
-                }
             }
 
         }

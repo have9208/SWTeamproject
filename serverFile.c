@@ -47,17 +47,17 @@ void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     // printf("fffffff\n");
     // printf("buffer size : %d\n",RDI->size);
     // printf("buffer : %s\n",RDI->buffer);
-    sha256_update(ctx,RDI->buffer, RDI->size);
-    
-    RDI->currentSize += RDI->size;
-    if(RDI->type == INTE)
+    sha256_update(ctx, RDI->buffer, RDI->size);
+
+    if( RDI->currentSize >= RDI->fileMeta.size )
     {
-        //  printf("333333333\n");
+        printDelete("change INTE");
+        RDI->type = INTE;
         sha256_final(ctx, RDI->servHash);
-        //  printf("4444444444\n");
-        // printNotice("end load file");
         close(RDI->fileDescriptor);
+        printNotice("end load data");
     }
+    
 }
 
 void deleteFile(RecievedDataInfo *RDI)
