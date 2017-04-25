@@ -65,10 +65,14 @@ int main(int argc, char *argv[])
                             close(sockInfo.cliSockId);
                             return 0;
                         }
-                        writeFile(fileDescriptor,buffer, fileMeta.fileName, size);
                         printNotice(buffer);
-                        sha256_update(&ctx,buffer, size);
-                        currentSize += size;
+                        
+                        ReceivedDataInfo RDI;
+                        writeFile(&RDI,fileDescriptor,buffer, fileMeta.fileName, size);    
+                        
+                        //writeFile(fileDescriptor,buffer, fileMeta.fileName, size);             
+                        //sha256_update(&ctx,buffer, size);
+                        //currentSize += size;
                         printNotice("load data");
 
                         if(fileMeta.size <= currentSize){
@@ -76,7 +80,7 @@ int main(int argc, char *argv[])
                             break;
                         }
                     }
-                    sha256_final(&ctx, servHash);
+                    sha256_final(&RDI.ctx, RDI.servHash);
                     receiveHash(&sockInfo, cliHash, HASH_SIZE);
                     sendIntegrity(&sockInfo, (char)(memcmp(servHash, cliHash, HASH_SIZE) == 0));
                     close(fileDescriptor);

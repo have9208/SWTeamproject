@@ -1,34 +1,25 @@
 #include "serverFile.h"
 
-int checkFile(char *fileBuffer,char *fileName, int fileSize)
+int checkFile(char *directoryPath,char *fileBuffer,char *fileName, int fileSize)
 {
     int fileDescriptor;
-    mkdir("./data/", 0777);
-	char pathFile[256] = "./data/";
+    char pathFile[256] = "data/";
+    char mkdirCmd ="mkdir -p ";
+    strncat(pathFile,directoryPath,strlen(directoryPath));
+    strncat(mkdirCmd,directoryPath,strlen(directoryPath));
+    system(mkdirCmd);
 	strncat(pathFile,fileName,strlen(fileName));
-
-    if ( 0 < ( fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)))
+    fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)))
+    if(fileDescriptor == -1)
     {
-        return fileDescriptor;
+        //printError("File is already existed");
     }
-    else
-    {
-        return fileDescriptor;
-    }
+    return fileDescriptor;
 }
 
-int writeFile(int fileDescriptor,char *fileBuffer,char *fileName, int fileSize)
+void writeFile(ReceivedDataInfo *RDI,int fileDescriptor,char *fileBuffer,char *fileName, int size)
 {
-	mkdir("./data/", 0777);
-	char pathFile[256] = "./data/";
-	strncat(pathFile,fileName,strlen(fileName));
-
-    if(fileDescriptor)
-    {
-        write( fileDescriptor, fileBuffer, fileSize);
-    }
-    else
-    {
-        printError("File is already existed!");
-    }
+    write( fileDescriptor, fileBuffer, size);
+    sha256_update(RDI.ctx,buffer, size);
+    RDI.currentSize += size;
 }
