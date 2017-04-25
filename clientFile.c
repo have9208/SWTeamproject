@@ -1,4 +1,63 @@
-#include "clientFile.h"
+//#include "clientFile.h"
+//#include "main.h"
+
+MetaDir* list_directory (char* dirname)
+{
+    DIR* dp;
+    struct dirent*  dirp;
+    struct stat     fstat;
+    char buff[BUFF_SIZE];
+    DataFile *fileBuf;
+    MetaDir dirBuf[DIR_SIZE];
+    int count = 0;
+        
+    dp = opendir(dirname);
+    if (!dp)
+    {
+        fprintf(stderr,"can't open directory (%s)\n", dirname);
+        perror("open directory ");
+        return;
+    }
+ 
+    chdir(dirname);
+    
+    while ((dirp = readdir(dp)) != NULL)
+    {
+        if(strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0)
+        {
+            continue;
+        }
+
+        if(stat(dirp->d_name, &fstat) == -1 )
+        {
+            fprintf(stderr,"can't stat file (%s)\n", dirp->d_name );
+            perror("stat file");
+            continue;
+        }
+
+        if( S_ISDIR(fstat.st_mode) )
+        {
+
+            dirBuf[count].dir =true;
+            getcwd(dirBuf[count].path,BUFF_SIZE);
+            count++;
+            list_directory( dirp->d_name, step+1 );
+        }
+        else
+        {
+            dirBuf[count].dir =false;
+            fileBuf = readFile(dirp->d_name);
+            dirBuf[count].fileBuf = *fileBuf;
+            getcwd(dirBuf[count].path,BUFF_SIZE);
+            count++;
+        } 
+    }
+    closedir(dp);
+
+    chdir("..");
+    
+    return dirBuf;
+}
 
 DataFile* readFile(char *fileName)
 {

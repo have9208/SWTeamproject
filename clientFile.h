@@ -14,8 +14,12 @@ gethash() : sha256.h를 이용해 해쉬값을 얻어내는 함수
 
 #include "sha256.h"
 #include "print.h"
+#include <dirent.h>
+#include <sys/stat.h>
+#include <stdbool.h>
 
 #define BUFF_SIZE 1024
+#define DIR_SIZE 32
 
 typedef struct DataFile
 {
@@ -24,9 +28,16 @@ typedef struct DataFile
     unsigned char hash[HASH_SIZE];
 } DataFile;
 
+typedef struct MetaDir
+{
+    DataFile fileBuf;
+    bool dir;
+    char path[BUFF_SIZE];
+} MetaDir;
+
 int getFileSize(int fd);
 int openFile(char *fileName);
 DataFile* readFile();
 SHA256_CTX gethash(int fd,SHA256_CTX crt,DataFile *fileBuf);
-
+MetaDir* list_directory (char* dirname);
 #endif
