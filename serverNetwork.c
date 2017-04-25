@@ -181,7 +181,6 @@ int receiveHash(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     printNotice(dataInfo->cliHash);
     printNotice("load hash data.");
 
-    sendIntegrity(sockInfo, dataInfo);
     return nbyte;
 }
 
