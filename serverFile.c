@@ -37,7 +37,7 @@ void writeFile(RecievedDataInfo *RDI)
     }
     write( RDI->fileDescriptor, RDI->buffer, RDI->size);
     sha256_update(&RDI->ctx,RDI->buffer, RDI->size);
-    RDI->currentSize += size;
+    RDI->currentSize += RDI->size;
     if(RDI->type == INTE)
     {
         sha256_final(&RDI->ctx, RDI->servHash);
