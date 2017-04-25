@@ -8,13 +8,13 @@ void checkFile(RecievedDataInfo *RDI)
     //Directory Temp Path
     strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
     
-    if(RDI->fileMeta.fileType==1)
+    if(RDI->fileMeta.type==1)
     {
         strncat(mkdirCmd,pathFile,strlen(pathFile));
         system(mkdirCmd);
         RDI->type=META;
     }
-    else if(RDI->fileMeta.fileType==2)
+    else if(RDI->fileMeta.type==2)
     {
         strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
         RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644);
