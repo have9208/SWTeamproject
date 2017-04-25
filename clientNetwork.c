@@ -76,25 +76,43 @@ void sendFile(NetworkInfo* n, char* parent, char* fileName)
     int i;
     DataFile* file;
     FileMetadata meta = { 0 };
+    char buf[MAX_FILE_NAME_LENGTH] = "";
     MetaDir *dir;
 
-    if (isDir(fileName))
+    if (strcmp(parent, ""))
     {
+        strcpy(buf, parent);
+        strcat(buf, "/");
+        strcat(buf, fileName);
+    }
+    else
+    {
+        strcpy(buf, fileName);
+    }
+    
+    if (isDir(buf))
+    {
+        printAdd(parent);
         printAdd(fileName);
-        dir = listDirectory(fileName);
+        
+        dir = listDirectory(buf);
         meta.size = dir->childs;
+        strcpy(meta.parent, parent);
         strcpy(meta.fileName, fileName);
         sendFileMetadata(n, &meta);
         for (i = 0; i < dir->childs; i++)
         {
-            sendFile(n, fileName, dir->files[i].fileName);
+            sendFile(n, buf, dir->files[i].fileName);
         }
+
+        closeDirectory(dir);
         printDelete(fileName);
+        printDelete(parent);
     }
     else
     {
         printNotice(fileName);
-        file = readFile(fileName);
+        file = readFile(buf);
         strcpy(meta.fileName, fileName);
         meta.size = file->fileSize;
 
