@@ -97,6 +97,7 @@ void sendFile(NetworkInfo* n, char* parent, char* fileName)
         
         dir = listDirectory(buf);
         meta.size = dir->childs;
+        meta.type = DIR_TYPE;
         strcpy(meta.parent, parent);
         strcpy(meta.fileName, fileName);
         sendFileMetadata(n, &meta);
@@ -115,6 +116,7 @@ void sendFile(NetworkInfo* n, char* parent, char* fileName)
         file = readFile(buf);
         strcpy(meta.fileName, fileName);
         meta.size = file->fileSize;
+        meta.type = FILE_TYPE; 
 
         sendFileMetadata(n, &meta);
         sendFileData(n, file);
