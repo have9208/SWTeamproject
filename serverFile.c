@@ -17,10 +17,12 @@ void checkFile(RecievedDataInfo *RDI)
     {
         strncat(mkdirCmd,pathFile,strlen(pathFile));
         system(mkdirCmd);
+        printDelete("change META");
         RDI->type=META;
     }
     else if(RDI->fileMeta.type==FILE_TYPE)
     {
+        printDelete("change DATA");
         RDI->type=DATA;
         strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
         RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644);
@@ -38,22 +40,22 @@ void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     {
         sha256_init(ctx);
         strcpy(RDI->servHash, "");
-         printf("00000000\n");
+        //  printf("00000000\n");
     }
-    printf("11111111\n");
+    // printf("11111111\n");
     write( RDI->fileDescriptor, RDI->buffer, RDI->size);
-    printf("fffffff\n");
-    printf("buffer size : %d\n",RDI->size);
-    printf("buffer : %s\n",RDI->buffer);
+    // printf("fffffff\n");
+    // printf("buffer size : %d\n",RDI->size);
+    // printf("buffer : %s\n",RDI->buffer);
     sha256_update(ctx,RDI->buffer, RDI->size);
     
     RDI->currentSize += RDI->size;
     if(RDI->type == INTE)
     {
-         printf("333333333\n");
+        //  printf("333333333\n");
         sha256_final(ctx, RDI->servHash);
-         printf("4444444444\n");
-        printNotice("end load file");
+        //  printf("4444444444\n");
+        // printNotice("end load file");
         close(RDI->fileDescriptor);
     }
 }

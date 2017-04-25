@@ -31,6 +31,7 @@ void serverSocket(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     sockInfo->sockId = sockId;
     sockInfo->addrLen = addrLen;
 
+    printDelete("change META");
     dataInfo->type = META;
 
     if(sockInfo->protocol == TCP)
@@ -116,7 +117,7 @@ void sendIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     printf("hash client : ");
     for(int i=0;i<32;i++)
     {
-        printf("%x",dataInfo->cliHash[i]);
+        printf("%02x",dataInfo->cliHash[i]);
     }
     printf("\n");
 
@@ -130,6 +131,7 @@ void sendIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
         printNotice("integrity success."); 
     }
 
+    printDelete("change META");
     dataInfo->type = META;
     sendComp(sockInfo, &boolean, 1);
 }
@@ -153,6 +155,8 @@ int receiveData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     
     if( (remainterSize -= nbyte) <= 0 )
     {
+
+        printDelete("change INTE");
         dataInfo->type = INTE;
         printNotice("end load data");
     }
@@ -182,6 +186,7 @@ int receiveHash(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 int receive(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     int type = dataInfo->type;
+    printf("type: %d\n", type);
     switch(type)
     {
         case META:
