@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
             if(nbyte == 0 && sockInfo.protocol == TCP)
             {
                 printNotice("Close client connection.");
+                break;
             }
 
             if(dataInfo.type == META)
