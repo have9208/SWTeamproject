@@ -141,6 +141,7 @@ int receiveData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     int remainterSize = dataInfo->fileMeta.size - dataInfo->currentSize;
     int size = (remainterSize >= BLOCK_SIZE)? BLOCK_SIZE : remainterSize;
     int nbyte = recvComp(sockInfo, dataInfo->buffer, size);
+    printf("nbyte: %d\n",nbyte);
 
     if(nbyte < 0)
     {
@@ -176,6 +177,7 @@ int receiveHash(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     printNotice("load hash data start.");
     int nbyte = recvComp(sockInfo, dataInfo->cliHash, HASH_SIZE);
+    printNotice(dataInfo->servHash);
     printNotice(dataInfo->cliHash);
     printNotice("load hash data.");
 
@@ -186,7 +188,6 @@ int receiveHash(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 int receive(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     int type = dataInfo->type;
-    printf("type: %d\n", type);
     switch(type)
     {
         case META:
