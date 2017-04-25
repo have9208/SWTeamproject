@@ -47,6 +47,7 @@ void printSpeedByte(struct timeval start, struct timeval end, int size, int nows
 
     byte = end.tv_usec - start.tv_usec;
     byte += ((end.tv_sec - start.tv_sec) * 1000000);
+    if (byte == 0) return;
     byte = size * (1000000 / byte);
 
     if (byte >= 1024)

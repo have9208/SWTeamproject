@@ -16,6 +16,9 @@ void checkFile(RecievedDataInfo *RDI)
     if(RDI->fileMeta.type==DIR_TYPE)
     {
         strncat(mkdirCmd,pathFile,strlen(pathFile));
+        strcat(mkdirCmd,"/");
+        strncat(mkdirCmd, RDI->fileMeta.fileName, strlen(RDI->fileMeta.fileName));
+        printAdd(mkdirCmd);
         system(mkdirCmd);
         printDelete("change META");
         RDI->type=META;
@@ -24,7 +27,9 @@ void checkFile(RecievedDataInfo *RDI)
     {
         printDelete("change DATA");
         RDI->type=DATA;
+        strcat(pathFile,"/");
         strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
+        printAdd(pathFile);
         RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644);
         if(RDI->fileDescriptor == -1)
         {
