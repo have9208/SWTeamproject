@@ -6,6 +6,7 @@
 typedef struct FileMetadata
 {
     int size;
+    char parent[MAX_FILE_NAME_LENGTH];
     char fileName[MAX_FILE_NAME_LENGTH];
 } FileMetadata;
 
