@@ -74,24 +74,35 @@ void sendBuffer(NetworkInfo* n, void* data, int size)
 void sendFile(NetworkInfo* n, char* filename)
 {
     DataFile* file;
+    int i;
 
-    FileMetadata meta = { 0 };
-    file = readFile(filename);
-    strcpy(meta.fileName, filename);
-    meta.size = file->fileSize;
+    // if (isDir(filename))
+    // {
+    //     for (i = 0; i < dirleng; i++)
+    //     {
+    //         sendFile(dirData);
+    //     }
+    // }
+    // else
+    // {
+        FileMetadata meta = { 0 };
+        file = readFile(filename);
+        strcpy(meta.fileName, filename);
+        meta.size = file->fileSize;
 
-    sendFileMetadata(n, &meta);
-    sendFileData(n, file);
-    sendHash(n, file->hash);
+        sendFileMetadata(n, &meta);
+        sendFileData(n, file);
+        sendHash(n, file->hash);
 
-    if (!recvResult(n))
-    {
-        printError("Crash !!");
-    }
-    else
-    {
-        printNotice("Success !!");
-    }
+        if (!recvResult(n))
+        {
+            printError("Crash !!");
+        }
+        else
+        {
+            printNotice("Success !!");
+        }
+    // }
 }
 
 void sendFileData(NetworkInfo* n, DataFile* file)
