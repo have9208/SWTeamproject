@@ -119,8 +119,6 @@ void sendFile(NetworkInfo* n, char* parent, char* fileName)
             meta.size = file->fileSize;
             meta.type = FILE_TYPE; 
 
-            printf("size: %d\n", meta.size);
-
             sendFileMetadata(n, &meta);
             sendFileData(n, file);
             sendHash(n, file->hash);
@@ -192,13 +190,6 @@ void sendFileMetadata(NetworkInfo* n, FileMetadata* meta)
 
 void sendHash(NetworkInfo* n, unsigned char* hash)
 {
-    
-    for (int j = 0; j < 32; j++)
-    {
-        printf("%0x", hash[j]);
-    }
-    printf("\n");
-
     sendBuffer(n, hash, HASH_SIZE);
 }
 
