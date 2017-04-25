@@ -3,42 +3,45 @@
 bool isDir(char *fileName)
 {
     struct stat file;
-    stat(fileName,&buf);
+    stat(fileName, &file);
     
     if(S_ISREG(file.st_mode))
     {
-        return true;
+        return false;
     }
     else if(S_ISDIR(file.st_mode))
     {
-        return false;
+        return true;
     }
     else
     {
-        return true;
+        return false;
     }
 }
 
-MetaDir* list_directory (char* dirname)
+int getDirectoryLength(char *dirName)
 {
     DIR* dp;
     struct dirent*  dirp;
     struct stat     fstat;
-    char buff[BUFF_SIZE];
-    DataFile *fileBuf;
-    MetaDir *dirBuf;
+    char orgPath[MAX_FILE_NAME_LENGTH] = "";
     int count = 0;
 
-    dirBuf = (MetaDir*)malloc(sizeof(MetaDir) * DIR_SIZE);
+    if (!isDir(dirName))
+    {
+        printError("디렉토리가 아님");
+        return 0;
+    }
         
-    dp = opendir(dirname);
+    dp = opendir(dirName);
     if (!dp)
     {
         printError("open direcgory error");
         exit(1);
     }
  
-    chdir(dirname);
+    getcwd(orgPath, MAX_FILE_NAME_LENGTH);
+    chdir(dirName);
     
     while ((dirp = readdir(dp)) != NULL)
     {
@@ -53,28 +56,71 @@ MetaDir* list_directory (char* dirname)
             continue;
         }
 
-        if( S_ISDIR(fstat.st_mode) )
-        {
-
-            dirBuf[count].dir =true;
-            getcwd(dirBuf[count].path,BUFF_SIZE);
-            count++;
-            list_directory( dirp->d_name );
-        }
-        else
-        {
-            dirBuf[count].dir =false;
-            fileBuf = readFile(dirp->d_name);
-            dirBuf[count].fileBuf = *fileBuf;
-            getcwd(dirBuf[count].path,BUFF_SIZE);
-            count++;
-        } 
+        count++;
     }
-    closedir(dp);
 
-    chdir("..");
+    closedir(dp);
+    chdir(orgPath);
     
-    return dirBuf;
+    return count;
+}
+
+MetaDir* listDirectory(char* dirName)
+{
+    DIR* dp;
+    struct dirent*  dirp;
+    struct stat     fstat;
+    DataFile *fileBuf;
+    char orgPath[MAX_FILE_NAME_LENGTH] = "";
+    int c = 0, i = 0;
+
+    MetaDir *dir;
+
+
+    if (!isDir(dirName))
+    {
+        printError("디렉토리가 아님");
+        return 0;
+    }
+
+    dir = (MetaDir*)malloc(sizeof(MetaDir));
+
+    c = getDirectoryLength(dirName);
+    strcpy(dir->path, dirName);
+    dir->files = (DataFile*)malloc(sizeof(DataFile) * c);
+    dir->childs = c;
+        
+    dp = opendir(dirName);
+    if (!dp)
+    {
+        printError("open direcgory error");
+        exit(1);
+    }
+ 
+    getcwd(orgPath, MAX_FILE_NAME_LENGTH);
+    chdir(dirName);
+
+    while ((dirp = readdir(dp)) != NULL)
+    {
+        if(strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0)
+        {
+            continue;
+        }
+
+        if(stat(dirp->d_name, &fstat) == -1 )
+        {
+            printError("stat file error");
+            continue;
+        }
+
+        strcpy(dir->files[i].fileName, dirp->d_name);
+        i++;
+    }
+    
+    closedir(dp);
+    chdir(orgPath);
+    
+    return dir;
 }
 
 void closeDirectory(MetaDir* dir)
