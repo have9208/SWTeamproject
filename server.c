@@ -33,7 +33,6 @@ int main(int argc, char *argv[])
             if(nbyte == 0 && sockInfo.protocol == TCP)
             {
                 printNotice("Close client connection.");
-                close(sockInfo.cliSockId);
                 return 0;
             }
 
@@ -41,15 +40,15 @@ int main(int argc, char *argv[])
             {
                 checkFile(&dataInfo);
             }
-            else if(dataInfo.type == DATA)
+            else
             {
                 printNotice(dataInfo.buffer);
                 writeFile(&dataInfo);
             }
-            else if(dataInfo.type == INTE)
+
+            if(dataInfo.type == INTE)
             {
                 sendIntegrity(&sockInfo, &dataInfo);
-                close(dataInfo.fileDescriptor);
             }
 
         }
