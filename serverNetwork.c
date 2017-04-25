@@ -95,7 +95,7 @@ int sendComp(SocketInfo *sockInfo, char *buffer, int size)
 {
     if(sockInfo->protocol == UDP)
     {
-        return sendto(sockInfo->sockId, buffer, size, 0, (struct sockaddr*)&(sockInfo->cliAddr), sizeof(sockInfo->addrLen));
+        return sendto(sockInfo->sockId, buffer, size, 0, (struct sockaddr*)&(sockInfo->cliAddr), sockInfo->addrLen);
     }
     else
     {
