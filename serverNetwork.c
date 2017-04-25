@@ -134,12 +134,12 @@ int receiveData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     dataInfo->size = nbyte;
     dataInfo->currentSize += nbyte;
 
-    printNotice("load data");
+    printAdd("load data");
     
     if( (remainterSize -= nbyte) <= 0 )
     {
         dataInfo->type = INTE;
-        printNotice("end load file");
+        printNotice("end load data");
     }
 
     return nbyte;
@@ -149,14 +149,18 @@ int receiveMeta(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     int nbyte = recvComp(sockInfo, (char *)&(dataInfo->fileMeta), sizeof(dataInfo->fileMeta));
     dataInfo->currentSize = 0;
-    printNotice("fileMetaData load.");
+    printAdd("fileMetaData load.");
     return nbyte;
 }
 
 int receiveHash(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
+    printNotice("load hash data start.");
     int nbyte = recvComp(sockInfo, dataInfo->cliHash, HASH_SIZE);
+    printNotice(dataInfo->cliHash);
     printNotice("load hash data.");
+
+    sendIntegrity(sockInfo, dataInfo);
     return nbyte;
 }
 

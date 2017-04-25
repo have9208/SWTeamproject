@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
     SocketInfo sockInfo;
     RecievedDataInfo dataInfo;
     int nbyte;
-    pid_t protocolPid;
+    pid_t protocolPid, acceptPid;
 
     switch( (protocolPid = fork()) )
     {
@@ -27,12 +27,27 @@ int main(int argc, char *argv[])
 
     while( acceptComp(&sockInfo) )
     {
+        if(sockInfo.protocol == TCP)
+        {
+            acceptPid = fork();
+
+            if(acceptPid == -1)
+            {
+                printError("cant fork error\n");
+                return 0;
+            }
+            else if(acceptPid > 0)
+            {
+                continue;
+            }
+        }
+
 
         while( (nbyte = receive(&sockInfo, &dataInfo)) != -1  )
         {
             if(nbyte == 0 && sockInfo.protocol == TCP)
             {
-                printNotice("Close client connection.");
+                printDelete("Close client connection.");
                 return 0;
             }
 
@@ -44,11 +59,6 @@ int main(int argc, char *argv[])
             {
                 printNotice(dataInfo.buffer);
                 writeFile(&dataInfo);
-            }
-
-            if(dataInfo.type == INTE)
-            {
-                sendIntegrity(&sockInfo, &dataInfo);
             }
 
         }
