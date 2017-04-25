@@ -1,6 +1,6 @@
 #include "serverFile.h"
 
-int checkFile(char *directoryPath,char *fileBuffer,char *fileName, int fileSize)
+int checkFile(char *directoryPath,char *fileBuffer,char *fileName)
 {
     int fileDescriptor;
     char pathFile[256] = "data/";

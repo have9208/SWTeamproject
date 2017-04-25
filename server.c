@@ -55,11 +55,11 @@ int main(int argc, char *argv[])
                     //TO DO
                     //Temp Test
                     char directory[256] = "/temp_test/test2/";
-                    fileDescriptor = checkFile(directory,buffer, fileMeta.fileName, size);
+                    fileDescriptor = checkFile(directory,buffer, RDI.fileMeta.fileName);
                     
                     //sha256_init(&RDI.ctx);
                     //strcpy(RDI.servHash, "");
-                    while( (size = receive(&sockInfo, buffer, currentSize, fileMeta.size)) != -1  )
+                    while( (size = receive(&sockInfo, buffer, RDI.currentSize, RDI.fileMeta.size)) != -1  )
                     {
                         if(size == 0)
                         {
@@ -87,8 +87,8 @@ int main(int argc, char *argv[])
                         //}
                     }
                     //sha256_final(&RDI.ctx, RDI.servHash);
-                    receiveHash(&sockInfo, cliHash, HASH_SIZE);
-                    sendIntegrity(&sockInfo, (char)(memcmp(servHash, cliHash, HASH_SIZE) == 0));
+                    receiveHash(&sockInfo, RDI.cliHash, HASH_SIZE);
+                    sendIntegrity(&sockInfo, (char)(memcmp(RDI.servHash, RDI.cliHash, HASH_SIZE) == 0));
                     close(fileDescriptor);
                 }
                 break;

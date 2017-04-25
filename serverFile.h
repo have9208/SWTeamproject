@@ -12,7 +12,7 @@
 #include "sha256.h"
 #include "server.h"
 
-int checkFile(char *directoryPath,char *fileBuffer,char *fileName, int fileSize);
+int checkFile(char *directoryPath,char *fileBuffer,char *fileName);
 int writeFile(RecievedDataInfo *RDI,int fileDescriptor,char *fileBuffer,char *fileName, int size);
 
 #define DBL_INT_ADD(a,b,c) if (a > 0xffffffff - (c)) ++b; a += c;
