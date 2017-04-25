@@ -9,29 +9,13 @@ int main(int argc, char *argv[])
     FileMetadata fileMeta;
     char buffer[BLOCK_SIZE+1];
     int size, currentSize;
-    int fileDescriptor;
     RecievedDataInfo RDI;
-    //unsigned char servHash[HASH_SIZE], cliHash[HASH_SIZE];
     pid_t pid;
     
     serverSocket(&sockInfo);
 
     while(1)
     {
-        /*
-        currentSize = 0;
-        fileMeta = receiveFileMetadata(&sockInfo);
-
-        while( (size = receive(&sockInfo, buffer)) != -1  )
-        {
-            writeFile(buffer, fileMeta.fileName, size);
-            currentSize += size;
-
-            if(fileMeta.size <= currentSize){
-                break;
-            }
-        }
-        */
 
         if( (sockInfo.cliSockId = accept(sockInfo.sockId, (struct sockaddr *)&(sockInfo.cliAddr), &(sockInfo.addrLen))) == -1 )
         {
@@ -49,16 +33,16 @@ int main(int argc, char *argv[])
             case 0:
                 while(1)
                 {
+                    //TO DO
+                    //Delete Session
                     RDI.currentSize = 0;
-                    fileMeta = receiveFileMetadata(&sockInfo);
+                    RDI.fileMeta = receiveFileMetadata(&sockInfo);
                     printNotice("fileMetaData load.");
                     //TO DO
                     //Temp Test
                     char directory[256] = "/temp_test/test2/";
-                    fileDescriptor = checkFile(directory,buffer, RDI.fileMeta.fileName);
-                    
-                    //sha256_init(&RDI.ctx);
-                    //strcpy(RDI.servHash, "");
+                    checkFile(&RDI,directory);
+
                     while( (size = receive(&sockInfo, buffer, RDI.currentSize, RDI.fileMeta.size)) != -1  )
                     {
                         if(size == 0)
@@ -68,28 +52,11 @@ int main(int argc, char *argv[])
                             return 0;
                         }
                         printNotice(buffer);                          
-                        if(writeFile(&RDI,fileDescriptor,buffer, RDI.fileMeta.fileName, size))
-                        {
-                            printNotice("load data");
-                        }      
-                        else
-                        {
-                            printNotice("end load file");
-                            break;
-                        }                     
-                        //writeFile(fileDescriptor,buffer, fileMeta.fileName, size);             
-                        //sha256_update(&ctx,buffer, size);
-                        //currentSize += size;
-                        //printNotice("load data");
-                        //if(fileMeta.size <= RDI.currentSize){
-                        //   printNotice("end load file");
-                        //    break;
-                        //}
+                        writeFile(&RDI, size);
                     }
-                    //sha256_final(&RDI.ctx, RDI.servHash);
                     receiveHash(&sockInfo, RDI.cliHash, HASH_SIZE);
                     sendIntegrity(&sockInfo, (char)(memcmp(RDI.servHash, RDI.cliHash, HASH_SIZE) == 0));
-                    close(fileDescriptor);
+                    
                 }
                 break;
         }

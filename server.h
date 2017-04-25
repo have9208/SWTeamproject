@@ -15,6 +15,7 @@ typedef struct RecievedDataInfo
     int type;
     int size;
     int currentSize;
+    int fileDescriptor;
     SHA256_CTX ctx;
     FileMetadata fileMeta;
 }RecievedDataInfo;

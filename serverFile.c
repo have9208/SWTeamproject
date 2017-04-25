@@ -1,46 +1,56 @@
 #include "serverFile.h"
 
-int checkFile(char *directoryPath,char *fileBuffer,char *fileName)
+void checkFile(RecievedDataInfo *RDI,char *directoryPath)
 {
-    int fileDescriptor;
     char pathFile[256] = "data/";
-    char mkdirCmd[256] ="mkdir -p ";
+    char mkdirCmd[256] = "mkdir -p ";
+    char directory[20]="directory";
+    char file[20]="file";
+    int test =0;
+
     strncat(pathFile,directoryPath,strlen(directoryPath));
-    strncat(mkdirCmd,directoryPath,strlen(directoryPath));
-    system(mkdirCmd);
-	strncat(pathFile,fileName,strlen(fileName));
-    fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644);
-    if(fileDescriptor == -1)
+    
+    if(test==0)
     {
-        printError("File is already existed");
+        strncat(mkdirCmd,pathFile,strlen(pathFile));
+        system(mkdirCmd);
+        RDI->type=META;
     }
-    return fileDescriptor;
+    else if(test==1)
+    {
+        strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
+        RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644);
+        if(RDI->fileDescriptor == -1)
+        {
+            printError("File is already existed");
+        }
+    }
+    
 }
 
-int writeFile(RecievedDataInfo *RDI,int fileDescriptor,char *fileBuffer,char *fileName, int size)
+void writeFile(RecievedDataInfo *RDI,int size)
 {
     if(RDI->currentSize==0)
     {
         sha256_init(&RDI->ctx);
         strcpy(RDI->servHash, "");
     }
-    write( fileDescriptor, fileBuffer, size);
-    sha256_update(&RDI->ctx,fileBuffer, size);
+    write( RDI->fileDescriptor, RDI->buffer, size);
+    sha256_update(&RDI->ctx,RDI->buffer, size);
     RDI->currentSize += size;
-    if(RDI->fileMeta.size <= RDI->currentSize)
+    if(RDI->type == INTE)
     {
         sha256_final(&RDI->ctx, RDI->servHash);
-        RDI->type=META;
         printNotice("end load file");
-        return 0;
+        close(RDI->fileDescriptor);
     }
-    return 1;
 }
-void deleteFile(char *directoryPath, char *fileName)
+
+void deleteFile(RecievedDataInfo *RDI,char *directoryPath)
 {
     char pathFile[256] = "data/";
     strncat(pathFile,directoryPath,strlen(directoryPath));
-	strncat(pathFile,fileName,strlen(fileName));
+	strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
     printError("Hash Error : recieved file is deleted");
     remove(pathFile);
 }
