@@ -92,8 +92,7 @@ void sendFile(NetworkInfo* n, char* parent, char* fileName)
     
     if (isDir(buf))
     {
-        printAdd(parent);
-        printAdd(fileName);
+        printAdd(buf);
         
         dir = listDirectory(buf);
         meta.size = dir->childs;
@@ -107,31 +106,34 @@ void sendFile(NetworkInfo* n, char* parent, char* fileName)
         }
 
         closeDirectory(dir);
-        printDelete(fileName);
-        printDelete(parent);
+        printDelete(buf);
     }
     else
     {
         printNotice(fileName);
         file = readFile(buf);
-        strcpy(meta.fileName, fileName);
-        meta.size = file->fileSize;
-        meta.type = FILE_TYPE; 
-
-        sendFileMetadata(n, &meta);
-        sendFileData(n, file);
-        sendHash(n, file->hash);
-
-        if (!recvResult(n))
+        if (file != 0)
         {
-            printError("Crash !!");
-        }
-        else
-        {
-            printNotice("Success !!");
-        }
+            strcpy(meta.fileName, fileName);
+            strcpy(meta.parent, parent);
+            meta.size = file->fileSize;
+            meta.type = FILE_TYPE; 
 
-        closeDataFile(file);
+            sendFileMetadata(n, &meta);
+            sendFileData(n, file);
+            sendHash(n, file->hash);
+
+            if (!recvResult(n))
+            {
+                printError("Crash !!");
+            }
+            else
+            {
+                printNotice("Success !!");
+            }
+
+            closeDataFile(file);
+        }
     }
 }
 

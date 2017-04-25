@@ -145,6 +145,10 @@ DataFile* readFile(char *fileName)
     memset(fileBuf,0,sizeof(DataFile));
     
     fd = openFile(fileName);
+    if (fd == -1)
+    {
+        return 0;
+    }
     
     fileBuf->fileSize = getFileSize(fd);
     
@@ -159,6 +163,8 @@ DataFile* readFile(char *fileName)
     if(read(fd, fileBuf->file,fileBuf->fileSize) == -1)
     {
         printError("read() error \n");
+        close(fd);
+        return 0;
     }
     
     close(fd);
@@ -194,6 +200,7 @@ int openFile(char *fileName)
     if((fd = open(fileName,O_RDONLY)) < 0)
     {
         printError("open() error \n");
+        return -1;
     }
     
     return fd;
