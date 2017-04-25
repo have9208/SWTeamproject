@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 
 #define PORT 31337
-#define BLOCK_SIZE 1024
+#define BLOCK_SIZE (1024 * 32)
 
 enum NetworkProtocol { UDP = 1, TCP = 2 };
 
