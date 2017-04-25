@@ -7,20 +7,23 @@
 #include <arpa/inet.h>
 #include "network.h"
 #include "file.h"
+#include "server.h"
 
 typedef struct SocketInfo
 {
     int sockId;
     int cliSockId;
     int addrLen;
+    int protocol;
     struct sockaddr_in servAddr;
     struct sockaddr_in cliAddr;
 }SocketInfo;
 
-void serverSocket(SocketInfo *sockInfo);
-int receive(SocketInfo *sockInfo, char *buffer, int currentSize, int maxSize);
-FileMetadata receiveFileMetadata(SocketInfo *sockInfo);
-void receiveHash(SocketInfo *sockInfo, char *hash, int size);
-void sendIntegrity(SocketInfo *sockInfo, char boolean);
+typedef struct RecievedDataInfo RecievedDataInfo;
+
+void serverSocket(SocketInfo *sockInfo, RecievedDataInfo *dataInfo);
+int acceptComp(SocketInfo *sockInfo);
+int receive(SocketInfo *sockInfo, RecievedDataInfo *dataInfo);
+void sendIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo);
 
 #endif /*__SERVER_NETWORK_H__*/
