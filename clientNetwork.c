@@ -141,20 +141,20 @@ void sendFileData(NetworkInfo* n, DataFile* file)
 {
     int i, c, end, size = 0, now = 0;
     char* data = file->file;
-    struct timeval after, before;
+    struct timeval after, before, start;
     char msg[64];
 
     c = (file->fileSize / BLOCK_SIZE);
     end = ((file->fileSize % BLOCK_SIZE) ? 1 : 0);
 
     gettimeofday(&after, NULL);
+    gettimeofday(&start, NULL);
 
     for (i = 0; i < c; i++)
     {
         if (!(i % 66))
         { 
             before = after;
-            size = 0;
         }
         sendBuffer(n, &data[i * BLOCK_SIZE], BLOCK_SIZE);
         size += BLOCK_SIZE;
@@ -164,6 +164,7 @@ void sendFileData(NetworkInfo* n, DataFile* file)
         {
             gettimeofday(&after, NULL);
             printSpeedByte(before, after, size, now, file->fileSize);
+            size = 0;
         }
     }
 
@@ -177,8 +178,9 @@ void sendFileData(NetworkInfo* n, DataFile* file)
     before = after;
     gettimeofday(&after, NULL);
 
-    printSpeedByte(before, after, BLOCK_SIZE, now, file->fileSize);
+    printSpeedByte(start, after, file->fileSize, now, file->fileSize);
     puts("");
+    // printNotice("data send end");
 }
 
 void sendFileMetadata(NetworkInfo* n, FileMetadata* meta)
@@ -186,8 +188,15 @@ void sendFileMetadata(NetworkInfo* n, FileMetadata* meta)
     sendBuffer(n, meta, sizeof(*meta));
 }
 
-void sendHash(NetworkInfo* n, char* hash)
+void sendHash(NetworkInfo* n, unsigned char* hash)
 {
+    
+    // for (int j = 0; j < 32; j++)
+    // {
+    //     printf("%0x", hash[j]);
+    // }
+    // printf("\n");
+
     sendBuffer(n, hash, HASH_SIZE);
 }
 

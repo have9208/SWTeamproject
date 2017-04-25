@@ -106,6 +106,21 @@ void sendIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     char boolean = (char)(memcmp(dataInfo->servHash, dataInfo->cliHash, HASH_SIZE) == 0);
 
+    printf("hash server : ");
+    for(int i=0;i<32;i++)
+    {
+        printf("%x",dataInfo->servHash[i]);
+    }
+    printf("\n");
+    
+    printf("hash client : ");
+    for(int i=0;i<32;i++)
+    {
+        printf("%x",dataInfo->cliHash[i]);
+    }
+    printf("\n");
+
+
     if(boolean == 0)
     {
         printNotice("integrity fail."); 

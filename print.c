@@ -37,7 +37,7 @@ void printClientHelp(char* name)
 
 void printSpeedByte(struct timeval start, struct timeval end, int size, int nowsize, int maxsize)
 {
-    long long byte;
+    unsigned long long byte;
     char unit = '\0';
     int rest = 0;
 
