@@ -92,8 +92,7 @@ void sendFile(NetworkInfo* n, char* parent, char* fileName)
     
     if (isDir(buf))
     {
-        printAdd(parent);
-        printAdd(fileName);
+        printAdd(buf);
         
         dir = listDirectory(buf);
         meta.size = dir->childs;
@@ -107,8 +106,7 @@ void sendFile(NetworkInfo* n, char* parent, char* fileName)
         }
 
         closeDirectory(dir);
-        printDelete(fileName);
-        printDelete(parent);
+        printDelete(buf);
     }
     else
     {
