@@ -32,19 +32,27 @@ void checkFile(RecievedDataInfo *RDI)
     
 }
 
-void writeFile(RecievedDataInfo *RDI)
+void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 {
     if(RDI->currentSize==0)
     {
-        sha256_init(&RDI->ctx);
+        sha256_init(ctx);
         strcpy(RDI->servHash, "");
+         printf("00000000\n");
     }
+    printf("11111111\n");
     write( RDI->fileDescriptor, RDI->buffer, RDI->size);
-    sha256_update(&RDI->ctx,RDI->buffer, RDI->size);
+    printf("fffffff\n");
+    printf("buffer size : %d\n",RDI->size);
+    printf("buffer : %s\n",RDI->buffer);
+    sha256_update(ctx,RDI->buffer, RDI->size);
+    
     RDI->currentSize += RDI->size;
     if(RDI->type == INTE)
     {
-        sha256_final(&RDI->ctx, RDI->servHash);
+         printf("333333333\n");
+        sha256_final(ctx, RDI->servHash);
+         printf("4444444444\n");
         printNotice("end load file");
         close(RDI->fileDescriptor);
     }
