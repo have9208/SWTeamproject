@@ -14,8 +14,8 @@
 
 typedef struct RecievedDataInfo RecievedDataInfo;
 
-void checkFile(RecievedDataInfo *RDI,char *directoryPath);
-void writeFile(RecievedDataInfo *RDI,int size);
-void deleteFile(RecievedDataInfo *RDI,char *directoryPath);
+void checkFile(RecievedDataInfo *RDI);
+void writeFile(RecievedDataInfo *RDI);
+void deleteFile(RecievedDataInfo *RDI);
 
 #endif

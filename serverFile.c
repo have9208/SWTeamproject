@@ -1,13 +1,13 @@
 #include "serverFile.h"
 
-void checkFile(RecievedDataInfo *RDI,char *directoryPath)
+void checkFile(RecievedDataInfo *RDI)
 {
     char pathFile[256] = "data/";
     char mkdirCmd[256] = "mkdir -p ";
-    char directory[20]="directory";
-    char file[20]="file";
     int test =0;
-
+    //TO DO
+    //Directory Temp Path
+    char directoryPath[30] = "/test/test2/";
     strncat(pathFile,directoryPath,strlen(directoryPath));
     
     if(test==0)
@@ -28,15 +28,15 @@ void checkFile(RecievedDataInfo *RDI,char *directoryPath)
     
 }
 
-void writeFile(RecievedDataInfo *RDI,int size)
+void writeFile(RecievedDataInfo *RDI)
 {
     if(RDI->currentSize==0)
     {
         sha256_init(&RDI->ctx);
         strcpy(RDI->servHash, "");
     }
-    write( RDI->fileDescriptor, RDI->buffer, size);
-    sha256_update(&RDI->ctx,RDI->buffer, size);
+    write( RDI->fileDescriptor, RDI->buffer, RDI->size);
+    sha256_update(&RDI->ctx,RDI->buffer, RDI->size);
     RDI->currentSize += size;
     if(RDI->type == INTE)
     {
@@ -46,9 +46,12 @@ void writeFile(RecievedDataInfo *RDI,int size)
     }
 }
 
-void deleteFile(RecievedDataInfo *RDI,char *directoryPath)
+void deleteFile(RecievedDataInfo *RDI)
 {
     char pathFile[256] = "data/";
+    //TO DO
+    //Directory Temp Path
+    char directoryPath[30] = "/test/test2/";
     strncat(pathFile,directoryPath,strlen(directoryPath));
 	strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
     printError("Hash Error : recieved file is deleted");
