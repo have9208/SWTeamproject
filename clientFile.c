@@ -1,5 +1,24 @@
 #include "clientFile.h"
 
+bool isDir(char *fileName)
+{
+    struct stat file;
+    stat(fileName,&buf);
+    
+    if(S_ISREG(file.st_mode))
+    {
+        return true;
+    }
+    else if(S_ISDIR(file.st_mode))
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
 MetaDir* list_directory (char* dirname)
 {
     DIR* dp;
