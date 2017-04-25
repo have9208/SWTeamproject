@@ -1,5 +1,4 @@
-//#include "clientFile.h"
-//#include "main.h"
+#include "clientFile.h"
 
 MetaDir* list_directory (char* dirname)
 {
@@ -8,15 +7,16 @@ MetaDir* list_directory (char* dirname)
     struct stat     fstat;
     char buff[BUFF_SIZE];
     DataFile *fileBuf;
-    MetaDir dirBuf[DIR_SIZE];
+    MetaDir *dirBuf;
     int count = 0;
+
+    dirBuf = (MetaDir*)malloc(sizeof(MetaDir) * DIR_SIZE);
         
     dp = opendir(dirname);
     if (!dp)
     {
-        fprintf(stderr,"can't open directory (%s)\n", dirname);
-        perror("open directory ");
-        return;
+        printError("open direcgory error");
+        exit(1);
     }
  
     chdir(dirname);
@@ -30,8 +30,7 @@ MetaDir* list_directory (char* dirname)
 
         if(stat(dirp->d_name, &fstat) == -1 )
         {
-            fprintf(stderr,"can't stat file (%s)\n", dirp->d_name );
-            perror("stat file");
+            printError("stat file error");
             continue;
         }
 
@@ -41,7 +40,7 @@ MetaDir* list_directory (char* dirname)
             dirBuf[count].dir =true;
             getcwd(dirBuf[count].path,BUFF_SIZE);
             count++;
-            list_directory( dirp->d_name, step+1 );
+            list_directory( dirp->d_name );
         }
         else
         {
