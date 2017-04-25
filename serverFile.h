@@ -10,10 +10,10 @@
 #include <sys/stat.h>
 #include "print.h"
 #include "sha256.h"
+#include "server.h"
 
-int checkFile(char *fileBuffer,char *fileName, int fileSize);
-int writeFile(int fileDescriptor,char *fileBuffer,char *fileName, int fileSize);
-char *writeError();
+int checkFile(char *directoryPath,char *fileBuffer,char *fileName, int fileSize);
+int writeFile(RecievedDataInfo *RDI,int fileDescriptor,char *fileBuffer,char *fileName, int size);
 
 #define DBL_INT_ADD(a,b,c) if (a > 0xffffffff - (c)) ++b; a += c;
 #define ROTLEFT(a,b) (((a) << (b)) | ((a) >> (32-(b))))
