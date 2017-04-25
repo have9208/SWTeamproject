@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 
             if(dataInfo.type == META)
             {
-                checkFile(&dataInfo);
+                checkFile(&ctx,&dataInfo);
             }
             else if(dataInfo.type == DATA)
             {

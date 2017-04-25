@@ -1,10 +1,12 @@
 #include "serverFile.h"
 
-void checkFile(RecievedDataInfo *RDI)
+void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 {
     char pathFile[256] = "data/";
     char mkdirCmd[256] = "mkdir -p ";
-    
+    sha256_init(ctx);
+    strcpy(RDI->servHash, "");
+    //  printf("00000000\n");
     //TO DO
     //Directory Temp Path
     strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
@@ -37,12 +39,6 @@ void checkFile(RecievedDataInfo *RDI)
 
 void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 {
-    if(RDI->currentSize==0)
-    {
-        sha256_init(ctx);
-        strcpy(RDI->servHash, "");
-        //  printf("00000000\n");
-    }
     // printf("11111111\n");
     write( RDI->fileDescriptor, RDI->buffer, RDI->size);
     // printf("fffffff\n");
