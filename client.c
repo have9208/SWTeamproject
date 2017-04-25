@@ -3,7 +3,7 @@
 int main(int argc, char* argv[])
 {
     int opt;
-    char *ip, filename[MAX_FILE_NAME_LENGTH], mode = 0;
+    char *ip, fileName[MAX_FILE_NAME_LENGTH], mode = 0;
     enum NetworkProtocol protocol;
     NetworkInfo* n;
 
@@ -17,8 +17,7 @@ int main(int argc, char* argv[])
                 mode |= MODE_IP;
                 break; 
             case 'f':
-                strcpy(filename, optarg);
-                printAdd(filename);
+                strcpy(fileName, optarg);
                 mode |= MODE_FILE;
                 break;
             case 'p':
@@ -58,7 +57,7 @@ int main(int argc, char* argv[])
 
     n = connectSocket(ip, PORT, protocol);
 
-    sendFile(n, filename);
+    sendFile(n, "", fileName);
 
     closeSocket(n);
 
