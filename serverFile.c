@@ -4,10 +4,6 @@ void checkFile(RecievedDataInfo *RDI)
 {
     char pathFile[256] = "data/";
     char mkdirCmd[256] = "mkdir -p ";
-    if (strcmp(RDI->fileMeta.parent,""))
-    {
-        strcat(pathFile,"/");
-    }
     
     //TO DO
     //Directory Temp Path

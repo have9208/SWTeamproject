@@ -146,7 +146,7 @@ int receiveData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     if(nbyte < 0)
     {
         printError("recv fail");
-        exit(0);
+        return nbyte;
     }
 
     dataInfo->size = nbyte;
