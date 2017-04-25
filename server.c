@@ -9,7 +9,6 @@ int main(int argc, char *argv[])
     RecievedDataInfo dataInfo;
     int nbyte;
     pid_t protocolPid;
-    char directory[256] = "/temp_test/test2/";
 
     switch( (protocolPid = fork()) )
     {
@@ -28,7 +27,6 @@ int main(int argc, char *argv[])
 
     while( acceptComp(&sockInfo) )
     {
-        //fileDescriptor = checkFile(&dataInfo);
 
         while( (nbyte = receive(&sockInfo, &dataInfo)) != -1  )
         {
@@ -39,14 +37,14 @@ int main(int argc, char *argv[])
                 return 0;
             }
 
-            if(dataInfo.type == INTE)
+            if(dataInfo.type == META)
             {
-                checkFile(&dataInfo, directory);
+                checkFile(&dataInfo);
             }
             else if(dataInfo.type == DATA)
             {
                 printNotice(dataInfo.buffer);
-                writeFile(&dataInfo, dataInfo.size);
+                writeFile(&dataInfo);
             }
             else if(dataInfo.type == INTE)
             {
