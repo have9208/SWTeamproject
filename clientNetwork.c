@@ -71,23 +71,31 @@ void sendBuffer(NetworkInfo* n, void* data, int size)
     }
 }
 
-void sendFile(NetworkInfo* n, char* filename)
+void sendFile(NetworkInfo* n, char* parent, char* fileName)
 {
-    DataFile* file;
     int i;
+    DataFile* file;
+    FileMetadata meta = { 0 };
+    MetaDir *dir;
 
-    // if (isDir(filename))
-    // {
-    //     for (i = 0; i < dirleng; i++)
-    //     {
-    //         sendFile(dirData);
-    //     }
-    // }
-    // else
-    // {
-        FileMetadata meta = { 0 };
-        file = readFile(filename);
-        strcpy(meta.fileName, filename);
+    if (isDir(fileName))
+    {
+        printAdd(fileName);
+        dir = listDirectory(fileName);
+        meta.size = dir->childs;
+        strcpy(meta.fileName, fileName);
+        sendFileMetadata(n, &meta);
+        for (i = 0; i < dir->childs; i++)
+        {
+            sendFile(n, fileName, dir->files[i].fileName);
+        }
+        printDelete(fileName);
+    }
+    else
+    {
+        printNotice(fileName);
+        file = readFile(fileName);
+        strcpy(meta.fileName, fileName);
         meta.size = file->fileSize;
 
         sendFileMetadata(n, &meta);
@@ -102,7 +110,7 @@ void sendFile(NetworkInfo* n, char* filename)
         {
             printNotice("Success !!");
         }
-    // }
+    }
 }
 
 void sendFileData(NetworkInfo* n, DataFile* file)
