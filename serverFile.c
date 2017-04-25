@@ -12,7 +12,7 @@ int checkFile(char *directoryPath,char *fileBuffer,char *fileName)
     fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644);
     if(fileDescriptor == -1)
     {
-        //printError("File is already existed");
+        printError("File is already existed");
     }
     return fileDescriptor;
 }
