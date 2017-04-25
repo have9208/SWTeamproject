@@ -140,8 +140,7 @@ int receiveData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 int receiveMeta(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     int nbyte = recvComp(sockInfo, (char *)&(dataInfo->fileMeta), sizeof(dataInfo->fileMeta));
-    dataInfo->type = DATA;
-    dataInfo->size = 0;
+    dataInfo->currentSize = 0;
     printNotice("fileMetaData load.");
     return nbyte;
 }

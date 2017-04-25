@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 {
     SocketInfo sockInfo;
     RecievedDataInfo dataInfo;
-    int size, fileDescriptor;
+    int size;
     pid_t protocolPid;
 
     switch( (protocolPid = fork()) )
