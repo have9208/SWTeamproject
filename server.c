@@ -6,52 +6,61 @@
 int main(int argc, char *argv[])
 {
     SocketInfo sockInfo;
-    RecievedDataInfo dataInfo;
-    int nbyte;
-    pid_t protocolPid;
-
-    switch( (protocolPid = fork()) )
-    {
-        case -1:
-        printError("cant fork error\n");
-        return 0;
-        case 0:
-        sockInfo.protocol = TCP;
-        break;
-        default:
-        sockInfo.protocol = UDP;
-        break;
-    }
+    FileMetadata fileMeta;
+    char buffer[BLOCK_SIZE+1];
+    int size, currentSize;
+    RecievedDataInfo RDI;
+    pid_t pid;
     
-    serverSocket(&sockInfo, &dataInfo);
+    serverSocket(&sockInfo);
 
-    while( acceptComp(&sockInfo) )
+    while(1)
     {
 
-        while( (nbyte = receive(&sockInfo, &dataInfo)) != -1  )
+        if( (sockInfo.cliSockId = accept(sockInfo.sockId, (struct sockaddr *)&(sockInfo.cliAddr), &(sockInfo.addrLen))) == -1 )
         {
-            if(nbyte == 0 && sockInfo.protocol == TCP)
-            {
-                printNotice("Close client connection.");
-                return 0;
-            }
-
-            if(dataInfo.type == META)
-            {
-                checkFile(&dataInfo);
-            }
-            else
-            {
-                printNotice(dataInfo.buffer);
-                writeFile(&dataInfo);
-            }
-
-            if(dataInfo.type == INTE)
-            {
-                sendIntegrity(&sockInfo, &dataInfo);
-            }
-
+            printError("Accept error");
+            return 0;
         }
+
+        printNotice("Accept success");
+
+        switch( (pid = fork()) )
+        {
+            case -1:
+                printError("cant fork error\n");
+                return 0;
+            case 0:
+                while(1)
+                {
+                    //TO DO
+                    //Delete Session
+                    RDI.currentSize = 0;
+                    RDI.fileMeta = receiveFileMetadata(&sockInfo);
+                    printNotice("fileMetaData load.");
+                    //TO DO
+                    //Temp Test
+                    char directory[256] = "/temp_test/test2/";
+                    checkFile(&RDI,directory);
+
+                    while( (size = receive(&sockInfo, buffer, RDI.currentSize, RDI.fileMeta.size)) != -1  )
+                    {
+                        if(size == 0)
+                        {
+                            printNotice("Close client connection.");
+                            close(sockInfo.cliSockId);
+                            return 0;
+                        }
+                        printNotice(buffer);                          
+                        writeFile(&RDI, size);
+                    }
+                    receiveHash(&sockInfo, RDI.cliHash, HASH_SIZE);
+                    sendIntegrity(&sockInfo, (char)(memcmp(RDI.servHash, RDI.cliHash, HASH_SIZE) == 0));
+                    
+                }
+                break;
+        }
+        
     }
 
     return 0;
