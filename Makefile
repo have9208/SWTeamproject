@@ -16,19 +16,19 @@ server: $(SOBJS)
 client: $(COBJS)
 	$(CC) -o $(COUT) $(COBJS) $(CFLAGS)
 
-server.o: server.c server.h serverFile.o serverNetwork.o
+server.o: server.c server.h serverFile.h serverNetwork.h
 	$(CC) -c server.c $(CFLAGS)
 	
-client.o: client.c client.h clientNetwork.o clientFile.o
+client.o: client.c client.h clientNetwork.h clientFile.h
 	$(CC) -c client.c $(CFLAGS)
 
-serverFile.o: serverFile.c serverFile.h file.h sha256.h
+serverFile.o: serverFile.c serverFile.h file.h sha256.h print.h server.h
 	$(CC) -c serverFile.c $(CFLAGS)
 
 serverNetwork.o: serverNetwork.c serverNetwork.h network.h file.h
 	$(CC) -c serverNetwork.c $(CFLAGS)
 
-clientNetwork.o: clientNetwork.c clientNetwork.h network.h file.h
+clientNetwork.o: clientNetwork.c clientNetwork.h network.h file.h print.h
 	$(CC) -c clientNetwork.c $(CFLAGS)
 
 clientFile.o: clientFile.c clientFile.h file.h sha256.h print.h

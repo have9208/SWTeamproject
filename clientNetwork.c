@@ -1,10 +1,16 @@
 #include "clientNetwork.h"
 
-int makeSocket()
+int makeSocket(enum NetworkProtocol p)
 {
     int sock;
-    // sock = socket(PF_INET, SOCK_DGRAM, 0);
-    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (p == UDP)
+    {
+        sock = socket(AF_INET, SOCK_DGRAM, 0);
+    }
+    else if (p == TCP)
+    {
+        sock = socket(AF_INET, SOCK_STREAM, 0);
+    }
 
     if (sock == -1)
     {
@@ -15,82 +21,204 @@ int makeSocket()
     return sock;
 }
 
-struct sockaddr_in* connectSocket(char* ip, int port)
+NetworkInfo* connectSocket(char* ip, int port, enum NetworkProtocol p)
 {
-    struct sockaddr_in *server_addr;
-    server_addr = (struct sockaddr_in*)malloc(sizeof(struct sockaddr_in));
+    NetworkInfo* net;
 
-    memset(server_addr, 0, sizeof(*server_addr));
-    server_addr->sin_family = AF_INET;
-    server_addr->sin_port = htons(port);
-    server_addr->sin_addr.s_addr= inet_addr(ip);
+    net = (NetworkInfo*)malloc(sizeof(NetworkInfo));
 
-    return server_addr;
+    net->sock = makeSocket(p);
+
+    memset(&net->addr, 0, sizeof(net->addr));
+    net->addr.sin_family = AF_INET;
+    net->addr.sin_port = htons(port);
+    net->addr.sin_addr.s_addr= inet_addr(ip);
+
+    if (p == TCP)
+    {
+        connectTCP(net->sock, &net->addr);
+    }
+
+    net->p = p;
+
+    return net;
 }
 
 void connectTCP(int fd, struct sockaddr_in* addr)
 {
     if (connect(fd, (struct sockaddr *)addr, sizeof(struct sockaddr_in)) < 0)
     {
-        printError("Connect error: ");
+        printError("Connect error");
         exit(0);
     }
 }
 
-void closeSocket(int sock, struct sockaddr_in* addr)
+void closeSocket(NetworkInfo* n)
 {
-    close(sock);
-    free(addr);
+    close(n->sock);
+    free(n);
 }
 
-void sendBuffer(int sock, struct sockaddr_in* addr, void* data, int size)
+void sendBuffer(NetworkInfo* n, void* data, int size)
 {
-    // printf("%s", (char*)data); 
-    send(sock, data, size, 0);
-    // sendto(sock, data, size, 0, (struct sockaddr*)addr, sizeof(*addr));
+    if (n->p == TCP)
+    {
+        send(n->sock, data, size, 0);
+    }
+    else
+    {
+        sendto(n->sock, data, size, 0, (struct sockaddr*)&n->addr, sizeof(n->addr));
+    }
 }
 
-void sendFile(int sock, struct sockaddr_in* addr, DataFile* file)
+void sendFile(NetworkInfo* n, char* parent, char* fileName)
 {
-    int i, c, end;
+    int i;
+    DataFile* file;
+    FileMetadata meta = { 0 };
+    char buf[MAX_FILE_NAME_LENGTH] = "";
+    MetaDir *dir;
+
+    if (strcmp(parent, ""))
+    {
+        strcpy(buf, parent);
+        strcat(buf, "/");
+        strcat(buf, fileName);
+    }
+    else
+    {
+        strcpy(buf, fileName);
+    }
+    
+    if (isDir(buf))
+    {
+        printAdd(buf);
+        
+        dir = listDirectory(buf);
+        meta.size = dir->childs;
+        meta.type = DIR_TYPE;
+        strcpy(meta.parent, parent);
+        strcpy(meta.fileName, fileName);
+        sendFileMetadata(n, &meta);
+        for (i = 0; i < dir->childs; i++)
+        {
+            sendFile(n, buf, dir->files[i].fileName);
+        }
+
+        closeDirectory(dir);
+        printDelete(buf);
+    }
+    else
+    {
+        printNotice(fileName);
+        file = readFile(buf);
+        if (file != 0)
+        {
+            strcpy(meta.fileName, fileName);
+            strcpy(meta.parent, parent);
+            meta.size = file->fileSize;
+            meta.type = FILE_TYPE;
+
+            if (meta.size == 0)
+            {
+                meta.size = 1;
+                file->file[0] = '\0';
+            }
+
+            sendFileMetadata(n, &meta);
+            sendFileData(n, file);
+            sendHash(n, file->hash);
+
+            if (!recvResult(n))
+            {
+                printError("Crash !!");
+            }
+            else
+            {
+                // printNotice("Success !!");
+            }
+
+            closeDataFile(file);
+        }
+    }
+}
+
+void sendFileData(NetworkInfo* n, DataFile* file)
+{
+    int i, c, end, size = 0, now = 0;
     char* data = file->file;
+    struct timeval after, before, start;
+    char msg[64];
+
     c = (file->fileSize / BLOCK_SIZE);
     end = ((file->fileSize % BLOCK_SIZE) ? 1 : 0);
 
+
+    gettimeofday(&after, NULL);
+    gettimeofday(&start, NULL);
+
     for (i = 0; i < c; i++)
     {
-        sendBuffer(sock, addr, &data[i * BLOCK_SIZE], BLOCK_SIZE);
+        usleep(30);
+        if (!(i % 40))
+        { 
+            before = after;
+        }
+        sendBuffer(n, &data[i * BLOCK_SIZE], BLOCK_SIZE);
+        size += BLOCK_SIZE;
+        now += BLOCK_SIZE;
+
+        if (!(i % 40))
+        {
+            gettimeofday(&after, NULL);
+            printSpeedByte(before, after, size, now, file->fileSize);
+            size = 0;
+        }
     }
 
     if (end)
     {
-        sendBuffer(sock, addr, &data[i * BLOCK_SIZE], file->fileSize % BLOCK_SIZE);
+        sendBuffer(n, &data[i * BLOCK_SIZE], file->fileSize % BLOCK_SIZE);
+        size += file->fileSize % BLOCK_SIZE;
+        now += BLOCK_SIZE;
     }
 
-    printNotice("send File end");
+    gettimeofday(&after, NULL);
+
+    printSpeedByte(start, after, file->fileSize, now, file->fileSize);
+    puts("");
 }
 
-void sendFileMetadata(int sock, struct sockaddr_in* addr, FileMetadata* meta)
+void sendFileMetadata(NetworkInfo* n, FileMetadata* meta)
 {
-    sendBuffer(sock, addr, meta, sizeof(*meta));
+    sendBuffer(n, meta, sizeof(*meta));
 }
 
-void sendHash(int sock, struct sockaddr_in* addr, char* hash)
+void sendHash(NetworkInfo* n, unsigned char* hash)
 {
-    printf("%s\n", hash);
-    sendBuffer(sock, addr, hash, HASH_SIZE);
+    usleep(500);
+    sendBuffer(n, hash, HASH_SIZE);
 }
 
-char* recvBuffer(int sock, struct sockaddr_in* addr, int size)
+
+char* recvBuffer(NetworkInfo* n, int size)
 {
     char* buffer = (char*)malloc(size);
-    read(sock, buffer, size);
+    int addr_size = sizeof(n->addr);
+    if (n->p == TCP)
+    {
+        read(n->sock, buffer, size);
+    }
+    else
+    {
+        recvfrom(n->sock, buffer, size, 0, NULL, NULL);
+    }
     return buffer;
 }
 
-char recvResult(int sock, struct sockaddr_in* addr)
+char recvResult(NetworkInfo* n)
 {
-    char* buf = recvBuffer(sock, addr, 1);
+    char* buf = recvBuffer(n, 1);
     char result = *buf;
     free(buf);
     return result;
