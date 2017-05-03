@@ -1,24 +1,32 @@
 #include "serverFile.h"
 
-void checkFile(RecievedDataInfo *RDI)
+void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 {
     char pathFile[256] = "data/";
     char mkdirCmd[256] = "mkdir -p ";
-    int test =0;
+    sha256_init(ctx);
+    strcpy(RDI->servHash, "");
     //TO DO
     //Directory Temp Path
-    char directoryPath[30] = "/test/test2/";
-    strncat(pathFile,directoryPath,strlen(directoryPath));
+    strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
     
-    if(test==0)
+    if(RDI->fileMeta.type==DIR_TYPE)
     {
         strncat(mkdirCmd,pathFile,strlen(pathFile));
+        strcat(mkdirCmd,"/");
+        strncat(mkdirCmd, RDI->fileMeta.fileName, strlen(RDI->fileMeta.fileName));
+        printAdd(mkdirCmd);
         system(mkdirCmd);
+        printDelete("change META");
         RDI->type=META;
     }
-    else if(test==1)
+    else if(RDI->fileMeta.type==FILE_TYPE)
     {
+        printDelete("change DATA");
+        RDI->type=DATA;
+        strcat(pathFile,"/");
         strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
+        printAdd(pathFile);
         RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644);
         if(RDI->fileDescriptor == -1)
         {
@@ -28,22 +36,24 @@ void checkFile(RecievedDataInfo *RDI)
     
 }
 
-void writeFile(RecievedDataInfo *RDI)
+void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 {
-    if(RDI->currentSize==0)
-    {
-        sha256_init(&RDI->ctx);
-        strcpy(RDI->servHash, "");
-    }
+    // printf("11111111\n");
     write( RDI->fileDescriptor, RDI->buffer, RDI->size);
-    sha256_update(&RDI->ctx,RDI->buffer, RDI->size);
-    RDI->currentSize += RDI->size;
-    if(RDI->type == INTE)
+    // printf("fffffff\n");
+    // printf("buffer size : %d\n",RDI->size);
+    // printf("buffer : %s\n",RDI->buffer);
+    sha256_update(ctx, RDI->buffer, RDI->size);
+
+    if( RDI->currentSize >= RDI->fileMeta.size )
     {
-        sha256_final(&RDI->ctx, RDI->servHash);
-        printNotice("end load file");
+        printDelete("change INTE");
+        RDI->type = INTE;
+        sha256_final(ctx, RDI->servHash);
         close(RDI->fileDescriptor);
+        printNotice("end load data");
     }
+    
 }
 
 void deleteFile(RecievedDataInfo *RDI)
@@ -51,8 +61,7 @@ void deleteFile(RecievedDataInfo *RDI)
     char pathFile[256] = "data/";
     //TO DO
     //Directory Temp Path
-    char directoryPath[30] = "/test/test2/";
-    strncat(pathFile,directoryPath,strlen(directoryPath));
+    strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
 	strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
     printError("Hash Error : recieved file is deleted");
     remove(pathFile);

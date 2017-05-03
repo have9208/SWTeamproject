@@ -14,8 +14,8 @@
 
 typedef struct RecievedDataInfo RecievedDataInfo;
 
-void checkFile(RecievedDataInfo *RDI);
-void writeFile(RecievedDataInfo *RDI);
+void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI);
+void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI);
 void deleteFile(RecievedDataInfo *RDI);
 
 #endif
