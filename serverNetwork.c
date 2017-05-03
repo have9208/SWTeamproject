@@ -72,14 +72,22 @@ int acceptComp(SocketInfo *sockInfo)
 
 int recvComp(SocketInfo *sockInfo, char *buffer, int size)
 {
+    int nbyte;
     if(sockInfo->protocol == UDP)
     {
-        return recvfrom(sockInfo->sockId, buffer, size, 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
+        nbyte = recvfrom(sockInfo->sockId, buffer, size, 0, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen));
     }
     else
     {
-        return recv(sockInfo->cliSockId, buffer, size, 0);
+        nbyte = recv(sockInfo->cliSockId, buffer, size, 0);
+
+        if(nbyte == 0)
+        {
+            close(sockInfo->cliSockId);
+        }
     }
+
+    return nbyte;
 }
 
 int sendComp(SocketInfo *sockInfo, char *buffer, int size)
