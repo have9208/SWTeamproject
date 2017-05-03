@@ -30,10 +30,10 @@ void closeSocket(NetworkInfo* n);
 
 void sendBuffer(NetworkInfo* n, void* data, int size);
 
-void sendFile(NetworkInfo* n, char* filename);
+void sendFile(NetworkInfo* n, char* parent, char* fileName);
 void sendFileData(NetworkInfo* n, DataFile* file);
 void sendFileMetadata(NetworkInfo* n, FileMetadata* meta);
-void sendHash(NetworkInfo* n, char* hash);
+void sendHash(NetworkInfo* n, unsigned char* hash);
 
 char* recvBuffer(NetworkInfo* n, int size);
 char recvResult(NetworkInfo* n);

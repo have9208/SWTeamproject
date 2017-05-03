@@ -37,7 +37,7 @@ void printClientHelp(char* name)
 
 void printSpeedByte(struct timeval start, struct timeval end, int size, int nowsize, int maxsize)
 {
-    long long byte;
+    unsigned long long byte;
     char unit = '\0';
     int rest = 0;
 
@@ -47,6 +47,7 @@ void printSpeedByte(struct timeval start, struct timeval end, int size, int nows
 
     byte = end.tv_usec - start.tv_usec;
     byte += ((end.tv_sec - start.tv_sec) * 1000000);
+    if (byte == 0) return;
     byte = size * (1000000 / byte);
 
     if (byte >= 1024)
@@ -63,10 +64,17 @@ void printSpeedByte(struct timeval start, struct timeval end, int size, int nows
         unit = 'M';
     }
 
+    if (byte >= 1024)
+    {
+        rest = byte % 1024;
+        byte /= 1024;
+        unit = 'G';
+    }
+
     p = byte + ((double)rest / 1024);
 
     s = getConsoleWidth();
-    s = s - sprintf(msg, "   %5.1f%cB/s\r", p, unit);
+    s -= sprintf(msg, "   %5.1f%cB/s\r", p, unit);
 
     m = (((double)nowsize / maxsize) * s);
 

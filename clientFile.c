@@ -1,5 +1,139 @@
 #include "clientFile.h"
 
+bool isDir(char *fileName)
+{
+    struct stat file;
+    stat(fileName, &file);
+    
+    if(S_ISREG(file.st_mode))
+    {
+        return false;
+    }
+    else if(S_ISDIR(file.st_mode))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+int getDirectoryLength(char *dirName)
+{
+    DIR* dp;
+    struct dirent*  dirp;
+    struct stat     fstat;
+    char orgPath[MAX_FILE_NAME_LENGTH] = "";
+    int count = 0;
+
+    if (!isDir(dirName))
+    {
+        printError("디렉토리가 아님");
+        return 0;
+    }
+        
+    dp = opendir(dirName);
+    if (!dp)
+    {
+        printError("open direcgory error");
+        exit(1);
+    }
+ 
+    getcwd(orgPath, MAX_FILE_NAME_LENGTH);
+    chdir(dirName);
+    
+    while ((dirp = readdir(dp)) != NULL)
+    {
+        if(strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0)
+        {
+            continue;
+        }
+
+        if(stat(dirp->d_name, &fstat) == -1 )
+        {
+            printError("stat file error");
+            continue;
+        }
+
+        count++;
+    }
+
+    closedir(dp);
+    chdir(orgPath);
+    
+    return count;
+}
+
+MetaDir* listDirectory(char* dirName)
+{
+    DIR* dp;
+    struct dirent*  dirp;
+    struct stat     fstat;
+    DataFile *fileBuf;
+    char orgPath[MAX_FILE_NAME_LENGTH] = "";
+    int c = 0, i = 0;
+
+    MetaDir *dir;
+
+
+    if (!isDir(dirName))
+    {
+        printError("디렉토리가 아님");
+        return 0;
+    }
+
+    dir = (MetaDir*)malloc(sizeof(MetaDir));
+
+    c = getDirectoryLength(dirName);
+    strcpy(dir->path, dirName);
+    dir->files = (DataFile*)malloc(sizeof(DataFile) * c);
+    dir->childs = c;
+        
+    dp = opendir(dirName);
+    if (!dp)
+    {
+        printError("open direcgory error");
+        exit(1);
+    }
+ 
+    getcwd(orgPath, MAX_FILE_NAME_LENGTH);
+    chdir(dirName);
+
+    while ((dirp = readdir(dp)) != NULL)
+    {
+        if(strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0)
+        {
+            continue;
+        }
+
+        if(stat(dirp->d_name, &fstat) == -1 )
+        {
+            printError("stat file error");
+            continue;
+        }
+
+        strcpy(dir->files[i].fileName, dirp->d_name);
+        i++;
+    }
+    
+    closedir(dp);
+    chdir(orgPath);
+    
+    return dir;
+}
+
+void closeDataFile(DataFile* data)
+{
+    free(data->file);
+}
+
+void closeDirectory(MetaDir* dir)
+{
+    free(dir->files);
+    free(dir);
+}
+
 DataFile* readFile(char *fileName)
 {
     int fd;
@@ -11,6 +145,10 @@ DataFile* readFile(char *fileName)
     memset(fileBuf,0,sizeof(DataFile));
     
     fd = openFile(fileName);
+    if (fd == -1)
+    {
+        return 0;
+    }
     
     fileBuf->fileSize = getFileSize(fd);
     
@@ -25,6 +163,8 @@ DataFile* readFile(char *fileName)
     if(read(fd, fileBuf->file,fileBuf->fileSize) == -1)
     {
         printError("read() error \n");
+        close(fd);
+        return 0;
     }
     
     close(fd);
@@ -60,6 +200,7 @@ int openFile(char *fileName)
     if((fd = open(fileName,O_RDONLY)) < 0)
     {
         printError("open() error \n");
+        return -1;
     }
     
     return fd;

@@ -10,9 +10,12 @@
 #include <sys/stat.h>
 #include "print.h"
 #include "sha256.h"
+#include "server.h"
 
-int checkFile(char *fileBuffer,char *fileName, int fileSize);
-int writeFile(int fileDescriptor,char *fileBuffer,char *fileName, int fileSize);
-char *writeError();
+typedef struct RecievedDataInfo RecievedDataInfo;
+
+void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI);
+void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI);
+void deleteFile(RecievedDataInfo *RDI);
 
 #endif
