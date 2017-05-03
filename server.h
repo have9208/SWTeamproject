@@ -5,4 +5,19 @@
 #include "serverFile.h"
 #include "serverNetwork.h"
 
+enum PacketType {META=1,DATA=2,INTE=3};
+
+typedef struct RecievedDataInfo
+{
+    char buffer[BLOCK_SIZE];
+    unsigned char servHash[HASH_SIZE];
+    unsigned char cliHash[HASH_SIZE];
+    int type;
+    int size;
+    int currentSize;
+    int fileDescriptor;
+    SHA256_CTX ctx;
+    FileMetadata fileMeta;
+}RecievedDataInfo;
+
 #endif /*__SERVER_H__*/

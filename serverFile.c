@@ -1,34 +1,68 @@
 #include "serverFile.h"
 
-int checkFile(char *fileBuffer,char *fileName, int fileSize)
+void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 {
-    int fileDescriptor;
-    mkdir("./data/", 0777);
-	char pathFile[256] = "./data/";
-	strncat(pathFile,fileName,strlen(fileName));
-
-    if ( 0 < ( fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)))
+    char pathFile[256] = "data/";
+    char mkdirCmd[256] = "mkdir -p ";
+    sha256_init(ctx);
+    strcpy(RDI->servHash, "");
+    //TO DO
+    //Directory Temp Path
+    strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
+    
+    if(RDI->fileMeta.type==DIR_TYPE)
     {
-        return fileDescriptor;
+        strncat(mkdirCmd,pathFile,strlen(pathFile));
+        strcat(mkdirCmd,"/");
+        strncat(mkdirCmd, RDI->fileMeta.fileName, strlen(RDI->fileMeta.fileName));
+        printAdd(mkdirCmd);
+        system(mkdirCmd);
+        printDelete("change META");
+        RDI->type=META;
     }
-    else
+    else if(RDI->fileMeta.type==FILE_TYPE)
     {
-        return fileDescriptor;
+        printDelete("change DATA");
+        RDI->type=DATA;
+        strcat(pathFile,"/");
+        strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
+        printAdd(pathFile);
+        RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644);
+        if(RDI->fileDescriptor == -1)
+        {
+            printError("File is already existed");
+        }
     }
+    
 }
 
-int writeFile(int fileDescriptor,char *fileBuffer,char *fileName, int fileSize)
+void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 {
-	mkdir("./data/", 0777);
-	char pathFile[256] = "./data/";
-	strncat(pathFile,fileName,strlen(fileName));
+    // printf("11111111\n");
+    write( RDI->fileDescriptor, RDI->buffer, RDI->size);
+    // printf("fffffff\n");
+    // printf("buffer size : %d\n",RDI->size);
+    // printf("buffer : %s\n",RDI->buffer);
+    sha256_update(ctx, RDI->buffer, RDI->size);
 
-    if(fileDescriptor)
+    if( RDI->currentSize >= RDI->fileMeta.size )
     {
-        write( fileDescriptor, fileBuffer, fileSize);
+        printDelete("change INTE");
+        RDI->type = INTE;
+        sha256_final(ctx, RDI->servHash);
+        close(RDI->fileDescriptor);
+        printNotice("end load data");
     }
-    else
-    {
-        printError("File is already existed!");
-    }
+    
+}
+
+void deleteFile(RecievedDataInfo *RDI)
+{
+    char pathFile[256] = "data/";
+    //TO DO
+    //Directory Temp Path
+    strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
+	strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
+    printError("Hash Error : recieved file is deleted");
+    remove(pathFile);
 }

@@ -5,7 +5,7 @@ int makeSocket(enum NetworkProtocol p)
     int sock;
     if (p == UDP)
     {
-        sock = socket(PF_INET, SOCK_DGRAM, 0);
+        sock = socket(AF_INET, SOCK_DGRAM, 0);
     }
     else if (p == TCP)
     {
@@ -76,39 +76,69 @@ void sendFile(NetworkInfo* n, char* parent, char* fileName)
     int i;
     DataFile* file;
     FileMetadata meta = { 0 };
+    char buf[MAX_FILE_NAME_LENGTH] = "";
     MetaDir *dir;
 
-    if (isDir(fileName))
+    if (strcmp(parent, ""))
     {
-        printAdd(fileName);
-        dir = listDirectory(fileName);
+        strcpy(buf, parent);
+        strcat(buf, "/");
+        strcat(buf, fileName);
+    }
+    else
+    {
+        strcpy(buf, fileName);
+    }
+    
+    if (isDir(buf))
+    {
+        printAdd(buf);
+        
+        dir = listDirectory(buf);
         meta.size = dir->childs;
+        meta.type = DIR_TYPE;
+        strcpy(meta.parent, parent);
         strcpy(meta.fileName, fileName);
         sendFileMetadata(n, &meta);
         for (i = 0; i < dir->childs; i++)
         {
-            sendFile(n, fileName, dir->files[i].fileName);
+            sendFile(n, buf, dir->files[i].fileName);
         }
-        printDelete(fileName);
+
+        closeDirectory(dir);
+        printDelete(buf);
     }
     else
     {
         printNotice(fileName);
-        file = readFile(fileName);
-        strcpy(meta.fileName, fileName);
-        meta.size = file->fileSize;
-
-        sendFileMetadata(n, &meta);
-        sendFileData(n, file);
-        sendHash(n, file->hash);
-
-        if (!recvResult(n))
+        file = readFile(buf);
+        if (file != 0)
         {
-            printError("Crash !!");
-        }
-        else
-        {
-            printNotice("Success !!");
+            strcpy(meta.fileName, fileName);
+            strcpy(meta.parent, parent);
+            meta.size = file->fileSize;
+            meta.type = FILE_TYPE;
+
+            if (meta.size == 0)
+            {
+                meta.size = 1;
+                file->file[0] = '\0';
+            }
+
+            sendFileMetadata(n, &meta);
+            sendFileData(n, file);
+            sendHash(n, file->hash);
+
+            if (!recvResult(n))
+            {
+                printError("Crash !!");
+            }
+            else
+            {
+                // printNotice("Success !!");
+            }
+
+            closeDataFile(file);
         }
     }
 }
@@ -117,29 +147,32 @@ void sendFileData(NetworkInfo* n, DataFile* file)
 {
     int i, c, end, size = 0, now = 0;
     char* data = file->file;
-    struct timeval after, before;
+    struct timeval after, before, start;
     char msg[64];
 
     c = (file->fileSize / BLOCK_SIZE);
     end = ((file->fileSize % BLOCK_SIZE) ? 1 : 0);
 
+
     gettimeofday(&after, NULL);
+    gettimeofday(&start, NULL);
 
     for (i = 0; i < c; i++)
     {
-        if (!(i % 66))
+        usleep(30);
+        if (!(i % 40))
         { 
             before = after;
-            size = 0;
         }
         sendBuffer(n, &data[i * BLOCK_SIZE], BLOCK_SIZE);
         size += BLOCK_SIZE;
         now += BLOCK_SIZE;
 
-        if (!(i % 66))
+        if (!(i % 40))
         {
             gettimeofday(&after, NULL);
             printSpeedByte(before, after, size, now, file->fileSize);
+            size = 0;
         }
     }
 
@@ -150,10 +183,9 @@ void sendFileData(NetworkInfo* n, DataFile* file)
         now += BLOCK_SIZE;
     }
 
-    before = after;
     gettimeofday(&after, NULL);
 
-    printSpeedByte(before, after, BLOCK_SIZE, now, file->fileSize);
+    printSpeedByte(start, after, file->fileSize, now, file->fileSize);
     puts("");
 }
 
@@ -162,8 +194,9 @@ void sendFileMetadata(NetworkInfo* n, FileMetadata* meta)
     sendBuffer(n, meta, sizeof(*meta));
 }
 
-void sendHash(NetworkInfo* n, char* hash)
+void sendHash(NetworkInfo* n, unsigned char* hash)
 {
+    usleep(500);
     sendBuffer(n, hash, HASH_SIZE);
 }
 
@@ -178,7 +211,7 @@ char* recvBuffer(NetworkInfo* n, int size)
     }
     else
     {
-        recvfrom(n->sock, buffer, size, 0 ,(struct sockaddr*)&n->addr, &addr_size);
+        recvfrom(n->sock, buffer, size, 0, NULL, NULL);
     }
     return buffer;
 }
