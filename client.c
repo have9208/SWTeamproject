@@ -2,28 +2,39 @@
 
 int main(int argc, char* argv[])
 {
-    int sock;
     int opt;
-    char* ip;
-    struct sockaddr_in* server_addr;
-    FileMetadata meta = { 0 };
-    DataFile* file;
+    char *ip, fileName[MAX_FILE_NAME_LENGTH], mode = 0;
+    enum NetworkProtocol protocol;
+    NetworkInfo* n;
 
-    char mode = 0;
-
-    while((opt = getopt(argc, argv, "l:f:")) != -1)
+    while((opt = getopt(argc, argv, "l:f:p:")) != -1)
     {
         switch(opt)
-        { 
+        {
             case 'l':
                 ip = malloc(sizeof(optarg));
                 strcpy(ip, optarg);
                 mode |= MODE_IP;
                 break; 
             case 'f':
-                strcpy(meta.fileName, optarg);
+                strcpy(fileName, optarg);
                 mode |= MODE_FILE;
                 break;
+            case 'p':
+                if (!strcmp(optarg, "TCP"))
+                {
+                    protocol = TCP;
+                }
+                else if (!strcmp(optarg, "UDP"))
+                {
+                    protocol = UDP;
+                }
+                else
+                {
+                    printClientHelp(argv[0]);
+                }
+
+                mode |= MODE_PROTOCOL;
             default:
                 break;
         }
@@ -39,28 +50,16 @@ int main(int argc, char* argv[])
         printClientHelp(argv[0]);
     }
 
-    sock = makeSocket();
-    server_addr = connectSocket(ip, PORT);
-    connectTCP(sock, server_addr);
-
-    file = readFile(meta.fileName);
-    meta.size = file->fileSize;
-
-    sendFileMetadata(sock, server_addr, &meta);
-    sendFile(sock, server_addr, file);
-
-    sendHash(sock, server_addr, file->hash);
-
-    if (!recvResult(sock, server_addr))
+    if (!(mode & MODE_PROTOCOL))
     {
-        printError("Crash !!");
-    }
-    else
-    {
-        printNotice("Success !!");
+        protocol = TCP;
     }
 
-    closeSocket(sock, server_addr);
+    n = connectSocket(ip, PORT, protocol);
+
+    sendFile(n, "", fileName);
+
+    closeSocket(n);
 
     return 0;
 }

@@ -31,6 +31,7 @@ void serverSocket(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     sockInfo->sockId = sockId;
     sockInfo->addrLen = addrLen;
 
+    printDelete("change META");
     dataInfo->type = META;
 
     if(sockInfo->protocol == TCP)
@@ -94,7 +95,7 @@ int sendComp(SocketInfo *sockInfo, char *buffer, int size)
 {
     if(sockInfo->protocol == UDP)
     {
-        return sendto(sockInfo->sockId, buffer, size, 0, (struct sockaddr*)&(sockInfo->cliAddr), sizeof(sockInfo->addrLen));
+        return sendto(sockInfo->sockId, buffer, size, 0, (struct sockaddr*)&(sockInfo->cliAddr), sockInfo->addrLen);
     }
     else
     {
@@ -106,6 +107,21 @@ void sendIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     char boolean = (char)(memcmp(dataInfo->servHash, dataInfo->cliHash, HASH_SIZE) == 0);
 
+    printf("hash server : ");
+    for(int i=0;i<32;i++)
+    {
+        printf("%x",dataInfo->servHash[i]);
+    }
+    printf("\n");
+    
+    printf("hash client : ");
+    for(int i=0;i<32;i++)
+    {
+        printf("%02x",dataInfo->cliHash[i]);
+    }
+    printf("\n");
+
+
     if(boolean == 0)
     {
         printNotice("integrity fail."); 
@@ -115,6 +131,7 @@ void sendIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
         printNotice("integrity success."); 
     }
 
+    printDelete("change META");
     dataInfo->type = META;
     sendComp(sockInfo, &boolean, 1);
 }
@@ -124,23 +141,18 @@ int receiveData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     int remainterSize = dataInfo->fileMeta.size - dataInfo->currentSize;
     int size = (remainterSize >= BLOCK_SIZE)? BLOCK_SIZE : remainterSize;
     int nbyte = recvComp(sockInfo, dataInfo->buffer, size);
+    printf("nbyte: %d\n",nbyte);
 
     if(nbyte < 0)
     {
         printError("recv fail");
-        exit(0);
+        return nbyte;
     }
 
     dataInfo->size = nbyte;
     dataInfo->currentSize += nbyte;
 
-    printNotice("load data");
-    
-    if( (remainterSize -= nbyte) <= 0 )
-    {
-        dataInfo->type = INTE;
-        printNotice("end load file");
-    }
+    printAdd("load data");
 
     return nbyte;
 }
@@ -149,14 +161,18 @@ int receiveMeta(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     int nbyte = recvComp(sockInfo, (char *)&(dataInfo->fileMeta), sizeof(dataInfo->fileMeta));
     dataInfo->currentSize = 0;
-    printNotice("fileMetaData load.");
+    printAdd("fileMetaData load.");
     return nbyte;
 }
 
 int receiveHash(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
+    printNotice("load hash data start.");
     int nbyte = recvComp(sockInfo, dataInfo->cliHash, HASH_SIZE);
+    printNotice(dataInfo->servHash);
+    printNotice(dataInfo->cliHash);
     printNotice("load hash data.");
+
     return nbyte;
 }
 

@@ -8,18 +8,19 @@ int main(int argc, char *argv[])
     SocketInfo sockInfo;
     RecievedDataInfo dataInfo;
     int nbyte;
+    SHA256_CTX ctx;
     pid_t protocolPid;
 
     switch( (protocolPid = fork()) )
     {
         case -1:
-        printError("cant fork error\n");
+        printError("cant fork error");
         return 0;
         case 0:
-        sockInfo.protocol = TCP;
+        sockInfo.protocol = UDP;
         break;
         default:
-        sockInfo.protocol = UDP;
+        sockInfo.protocol = TCP;
         break;
     }
     
@@ -33,20 +34,19 @@ int main(int argc, char *argv[])
             if(nbyte == 0 && sockInfo.protocol == TCP)
             {
                 printNotice("Close client connection.");
-                return 0;
+                break;
             }
 
             if(dataInfo.type == META)
             {
-                checkFile(&dataInfo);
+                checkFile(&ctx,&dataInfo);
             }
-            else
+            else if(dataInfo.type == DATA)
             {
-                printNotice(dataInfo.buffer);
-                writeFile(&dataInfo);
+                // printNotice(dataInfo.buffer);
+                writeFile(&ctx,&dataInfo);
             }
-
-            if(dataInfo.type == INTE)
+            else if(dataInfo.type == INTE)
             {
                 sendIntegrity(&sockInfo, &dataInfo);
             }
@@ -56,4 +56,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
