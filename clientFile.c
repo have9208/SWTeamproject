@@ -1,6 +1,6 @@
 #include "clientFile.h"
 
-unsigned char* getHash(int *fd,int fileSize)
+unsigned char* getHash(int fd,int fileSize)
 {
     SHA256_CTX ctx;
     unsigned char *hash;
@@ -13,29 +13,19 @@ unsigned char* getHash(int *fd,int fileSize)
     return hash;
 }
 
-char* fileSequenceChk(int *fd,int sequence,int fileSize,bool lastFile)
+char* fileSequenceChk(int fd,int offset,int len)
 {
     char *file;
-    int offset = 0;
     
-    if(lastFile == true)
-    {
-        offset = sequence * BLOCK_SIZE;
-    }
-    else
-    {
-        offset = sequence * fileSize;
-    }
+    lseek(fd,offset,SEEK_SET);
+
+    file = (char*)malloc(sizeof(char) * len);
+    memset(file,0,sizeof(char) * len);
     
-    file = (char*)malloc(sizeof(char)*BLOCK_SIZE);
-    memset(file,0,sizeof(char)*BLOCK_SIZE);
-    
-    lseek(*fd,offset,SEEK_SET);
-    
-    if(read(*fd, file, BLOCK_SIZE) == -1)
+    if(read(fd, file, len) == -1)
     {
         printError("read() error \n");
-        close(*fd);
+        close(fd);
         return -1;
     }
     
@@ -179,13 +169,13 @@ void closeDirectory(MetaDir* dir)
     free(dir);
 }
 
-SHA256_CTX getHashCtx(int *fd,SHA256_CTX ctx,int fileSize)
+SHA256_CTX getHashCtx(int fd,SHA256_CTX ctx,int fileSize)
 {
     int ret,size, block = BUFF_SIZE;
     
     size = 0;
     
-    lseek(*fd,0,SEEK_SET);
+    lseek(fd,0,SEEK_SET);
     sha256_init(&ctx);
     char buf[BUFF_SIZE];
     
@@ -196,7 +186,7 @@ SHA256_CTX getHashCtx(int *fd,SHA256_CTX ctx,int fileSize)
             block = fileSize % BUFF_SIZE;
         }
         
-        ret = read(*fd, buf, block);
+        ret = read(fd, buf, block);
         size += block;
         
         if(ret > 0)
