@@ -44,18 +44,21 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
             for(int i=0;i<RDI->fileSequence;i++)
             {
                 read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
-                sha256_update(ctx, RDI->buffer, RDI->size);
+                sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
             }
-            lseek(RDI->fileDescriptor,RDI->fileSequence*BLOCK_SIZE,SEEK_SET);
             sha256_final(ctx, RDI->servHash);
             sha256_init(ctx);  
-            RDI->type = SEQ;
+            RDI->type = CHK;
         }
         else if((RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1)
         {
+            //TO DO
+            //When file is already existed
             printError("There are existed file.");
-        } 
-        
+            //close(RDI->fileDescriptor);
+
+            RDI->type = CHK;
+        }     
     }
     
 }
@@ -77,25 +80,24 @@ void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 
 void verifyFile(RecievedDataInfo *RDI)
 {
-    if(strcmp(RDI->buffer,"verified")!=0)
+    if(strcmp(RDI->buffer,"error")==0)
     {
         lseek(RDI->fileDescriptor,0,SEEK_SET);
+        RDI->type=DATA;
     }
-    else
+    else if(strcmp(RDI->buffer,"overwrite")==0)
     {
-        RDI->currentSize = RDI->fileSequence * BLOCK_SIZE;
+        RDI->fileDescriptor = open( RDI->pathFile, O_WRONLY | O_CREAT | O_TRUNC , 0644);
+        RDI->type=DATA;
     }
-    RDI->type=DATA;
-}
-
-void deleteFile(RecievedDataInfo *RDI)
-{
-    char pathFile[256] = "data/";
-    //TO DO
-    //Directory Temp Path
-
-    strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
-	strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
-    printError("Hash Error : recieved file is deleted");
-    remove(pathFile);
+    else if(strcmp(RDI->buffer,"verified")==0)
+    {
+        lseek(RDI->fileDescriptor,RDI->fileSequence*BLOCK_SIZE,SEEK_SET);
+        RDI->currentSize = RDI->fileSequence * BLOCK_SIZE;
+        RDI->type=DATA;
+    }
+    else if(strcmp(RDI->buffer,"ignore")==0)
+    {
+        RDI->type=INTE;
+    }    
 }

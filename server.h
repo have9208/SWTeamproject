@@ -5,7 +5,7 @@
 #include "serverFile.h"
 #include "serverNetwork.h"
 
-enum PacketType {META=1,SEQ=2,DATA=3,INTE=4};
+enum PacketType {META=1,CHK=2,DATA=3,INTE=4};
 
 typedef struct RecievedDataInfo
 {
