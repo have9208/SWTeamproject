@@ -228,3 +228,14 @@ int openFile(char *fileName)
     
     return fd;
 }
+
+int getFileSize(char *fileName)
+{
+    struct stat file;
+    int fileSize;
+    
+    stat(fileName,&file);
+    fileSize = file.st_size;
+    
+    return fileSize;
+}
