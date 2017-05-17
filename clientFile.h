@@ -37,14 +37,17 @@ typedef struct MetaDir
     int childs;
 } MetaDir;
 
+MetaDir* listDirectory(char* dirName);
+int getDirectoryFileCount(char *dirName);
+char* fileSequenceChk(int *fd,int sequence,int fileSize,bool lastFile);
+
+SHA256_CTX getHashCtx(int *fd,SHA256_CTX ctx,int fileSize);
+unsigned char* getHash(int *fd,int fileSize);
+
 int getFileSize(int fd);
 int openFile(char *fileName);
-DataFile* readFile();
-SHA256_CTX gethash(int fd,SHA256_CTX crt,DataFile *fileBuf);
-MetaDir* listDirectory(char* dirName);
-int getDirectoryLength(char *dirName);
-
+bool isDir(char *fileName);
 void closeDataFile(DataFile* data);
 void closeDirectory(MetaDir* dir);
-bool isDir(char *fileName);
+
 #endif
