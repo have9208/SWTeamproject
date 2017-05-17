@@ -39,10 +39,10 @@ typedef struct MetaDir
 
 MetaDir* listDirectory(char* dirName);
 int getDirectoryFileCount(char *dirName);
-char* fileSequenceChk(int *fd,int sequence,int fileSize,bool lastFile);
+char* fileSequenceChk(int fd,int offset,int len);
 
-SHA256_CTX getHashCtx(int *fd,SHA256_CTX ctx,int fileSize);
-unsigned char* getHash(int *fd,int fileSize);
+SHA256_CTX getHashCtx(int fd,SHA256_CTX ctx,int fileSize);
+unsigned char* getHash(int fd,int fileSize);
 
 int getFileSize(char *fileName);
 int openFile(char *fileName);
