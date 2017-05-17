@@ -75,7 +75,7 @@ void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     }
 }
 
-void verifyFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
+void verifyFile(RecievedDataInfo *RDI)
 {
     if(strcmp(RDI->buffer,"verified")!=0)
     {
