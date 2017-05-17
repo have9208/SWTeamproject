@@ -33,65 +33,59 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
         strcpy(tmpFile,pathFile);
         strncat(tmpFile,tmpExtension,strlen(tmpExtension));
         printAdd(tmpFile);
-
+        strcat(RDI->tmpFile,tmpFile);
         RDI->fileDescriptor = open( tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644);
         if((RDI->fileDescriptor = open( tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1) // tmp file is already existed
         {
             printError("There are existed canceled file.");
-            RDI->fileDescriptor = -2;
+            RDI->fileDescriptor = open(RDI->tmpFile, O_RDWR | O_CREAT | O_APPEND, 0644);
+            RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
+            lseek(RDI->fileDescriptor,0,SEEK_SET);
+            for(int i=0;i<RDI->fileSequence;i++)
+            {
+                read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
+                sha256_update(ctx, RDI->buffer, RDI->size);
+            }
+            lseek(RDI->fileDescriptor,RDI->fileSequence*BLOCK_SIZE,SEEK_SET);
+            sha256_final(ctx, RDI->servHash);
+            sha256_init(ctx);  
+            RDI->type = SEQ;
         }
         else if((RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1)
         {
             printError("There are existed file.");
         } 
-        strcat(RDI->tmpFile,tmpFile);
+        
     }
     
 }
 
 void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 {
-    if(RDI->fileDescriptor==-1)
+    write( RDI->fileDescriptor, RDI->buffer, RDI->size);
+    sha256_update(ctx, RDI->buffer, RDI->size); 
+    if( RDI->currentSize >= RDI->fileMeta.size )
     {
-        //TO DO
-        //Original file is existed
-        printError("There are existed original file.");
-    }
-    else if(RDI->fileDescriptor==-2)
-    {
-        //TO DO
-        //When tmp file is existed
-        //Send Packet 
-        //Hash Compare
-        RDI->fileDescriptor = open(RDI->tmpFile, O_RDWR | O_CREAT | O_APPEND, 0644);
-        RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
-        lseek(RDI->fileDescriptor,0,SEEK_SET);
-        for(int i=0;i<RDI->fileSequence;i++)
-        {
-            read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
-            sha256_update(ctx, RDI->buffer, RDI->size);
-        }
-        lseek(RDI->fileDescriptor,RDI->fileSequence*BLOCK_SIZE,SEEK_SET);
+        rename(RDI->tmpFile,RDI->pathFile);
+        printDelete("change INTE");
+        RDI->type = INTE;
         sha256_final(ctx, RDI->servHash);
-        sha256_init(ctx);  
-        RDI->type = SEQ;
+        close(RDI->fileDescriptor);
+        printNotice("end load data");
+    }
+}
+
+void verifyFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
+{
+    if(strcmp(RDI->buffer,"verified")!=0)
+    {
+        lseek(RDI->fileDescriptor,0,SEEK_SET);
     }
     else
     {
-        write( RDI->fileDescriptor, RDI->buffer, RDI->size);
-        sha256_update(ctx, RDI->buffer, RDI->size);
-        
-        if( RDI->currentSize >= RDI->fileMeta.size )
-        {
-            rename(RDI->tmpFile,RDI->pathFile);
-            printDelete("change INTE");
-            RDI->type = INTE;
-            sha256_final(ctx, RDI->servHash);
-            close(RDI->fileDescriptor);
-            printNotice("end load data");
-        }
+        RDI->currentSize = RDI->fileSequence * BLOCK_SIZE;
     }
-      
+    RDI->type=DATA;
 }
 
 void deleteFile(RecievedDataInfo *RDI)
@@ -99,6 +93,7 @@ void deleteFile(RecievedDataInfo *RDI)
     char pathFile[256] = "data/";
     //TO DO
     //Directory Temp Path
+
     strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
 	strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
     printError("Hash Error : recieved file is deleted");
