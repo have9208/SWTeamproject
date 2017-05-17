@@ -34,7 +34,6 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
         strncat(tmpFile,tmpExtension,strlen(tmpExtension));
         printAdd(tmpFile);
         strcat(RDI->tmpFile,tmpFile);
-        RDI->fileDescriptor = open( tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644);
         if((RDI->fileDescriptor = open( tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1) // tmp file is already existed
         {
             printError("There are existed canceled file.");
@@ -55,8 +54,18 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
             //TO DO
             //When file is already existed
             printError("There are existed file.");
-            //close(RDI->fileDescriptor);
-
+            RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
+            RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
+            lseek(RDI->fileDescriptor,0,SEEK_SET);
+            for(int i=0;i<RDI->fileSequence;i++)
+            {
+                read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
+                sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
+            }
+            read(RDI->fileDescriptor,RDI->buffer,RDI->fileMeta.size - (BLOCK_SIZE)*RDI->fileSequence);
+            RDI->fileSequence = -1;
+            sha256_final(ctx, RDI->servHash);
+            sha256_init(ctx);
             RDI->type = CHK;
         }     
     }
@@ -79,24 +88,26 @@ void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 
 void verifyFile(RecievedDataInfo *RDI)
 {
-    if(strcmp(RDI->buffer,"error")==0)
+    if(strcmp(RDI->buffer,"error")==0) // When file is corrupted
     {
         lseek(RDI->fileDescriptor,0,SEEK_SET);
         RDI->type=DATA;
     }
-    else if(strcmp(RDI->buffer,"overwrite")==0)
-    {
-        RDI->fileDescriptor = open( RDI->pathFile, O_WRONLY | O_CREAT | O_TRUNC , 0644);
-        RDI->type=DATA;
-    }
     else if(strcmp(RDI->buffer,"verified")==0)
     {
-        lseek(RDI->fileDescriptor,RDI->fileSequence*BLOCK_SIZE,SEEK_SET);
-        RDI->currentSize = RDI->fileSequence * BLOCK_SIZE;
-        RDI->type=DATA;
+        if(RDI->fileSequence == -1) // When file is already existed and completed
+        {
+            RDI->type=META;
+        }
+        else // When file keep going download
+        {
+            lseek(RDI->fileDescriptor,RDI->fileSequence*BLOCK_SIZE,SEEK_SET);
+            RDI->currentSize = RDI->fileSequence * BLOCK_SIZE;
+            RDI->type=DATA;
+        }      
     }
-    else if(strcmp(RDI->buffer,"ignore")==0)
+    else if(strcmp(RDI->buffer,"ignore")==0) // When file is already existed and ignored
     {
-        RDI->type=INTE;
+        RDI->type=META;
     }    
 }
