@@ -60,7 +60,6 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
             RDI->type = CHK;
         }     
     }
-    
 }
 
 void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
