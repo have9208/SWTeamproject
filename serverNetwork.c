@@ -103,24 +103,13 @@ int sendComp(SocketInfo *sockInfo, char *buffer, int size)
     }
 }
 
+void sendHash(SocketInfo *sockInfo, RecievedDataInfo *dataInfo){
+    sendComp(sockInfo, dataInfo->servHash, HASH_SIZE);
+}
+
 void sendIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     char boolean = (char)(memcmp(dataInfo->servHash, dataInfo->cliHash, HASH_SIZE) == 0);
-
-    printf("hash server : ");
-    for(int i=0;i<32;i++)
-    {
-        printf("%x",dataInfo->servHash[i]);
-    }
-    printf("\n");
-    
-    printf("hash client : ");
-    for(int i=0;i<32;i++)
-    {
-        printf("%02x",dataInfo->cliHash[i]);
-    }
-    printf("\n");
-
 
     if(boolean == 0)
     {
@@ -165,12 +154,15 @@ int receiveMeta(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     return nbyte;
 }
 
+int receiveIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo){
+    int nbyte = recvComp(sockInfo, &(dataInfo->buffer[0]), 1);
+    return nbyte;
+}
+
 int receiveHash(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     printNotice("load hash data start.");
     int nbyte = recvComp(sockInfo, dataInfo->cliHash, HASH_SIZE);
-    printNotice(dataInfo->servHash);
-    printNotice(dataInfo->cliHash);
     printNotice("load hash data.");
 
     return nbyte;
