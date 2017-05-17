@@ -22,38 +22,76 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     }
     else if(RDI->fileMeta.type==FILE_TYPE)
     {
+        char tmpExtension[12] = ".tmp";
+        char tmpFile[256];
         printDelete("change DATA");
         RDI->type=DATA;
         strcat(pathFile,"/");
         strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
-        printAdd(pathFile);
-        RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644);
-        if(RDI->fileDescriptor == -1)
+        strcat(RDI->pathFile,pathFile);
+
+        strcpy(tmpFile,pathFile);
+        strncat(tmpFile,tmpExtension,strlen(tmpExtension));
+        printAdd(tmpFile);
+
+        RDI->fileDescriptor = open( tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644);
+        if((RDI->fileDescriptor = open( tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1) // tmp file is already existed
         {
-            printError("File is already existed");
+            printError("There are existed canceled file.");
+            RDI->fileDescriptor = -2;
         }
+        else if((RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1)
+        {
+            printError("There are existed file.");
+        } 
+        strcat(RDI->tmpFile,tmpFile);
     }
     
 }
 
 void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 {
-    // printf("11111111\n");
-    write( RDI->fileDescriptor, RDI->buffer, RDI->size);
-    // printf("fffffff\n");
-    // printf("buffer size : %d\n",RDI->size);
-    // printf("buffer : %s\n",RDI->buffer);
-    sha256_update(ctx, RDI->buffer, RDI->size);
-
-    if( RDI->currentSize >= RDI->fileMeta.size )
+    if(RDI->fileDescriptor==-1)
     {
-        printDelete("change INTE");
-        RDI->type = INTE;
-        sha256_final(ctx, RDI->servHash);
-        close(RDI->fileDescriptor);
-        printNotice("end load data");
+        //TO DO
+        //Original file is existed
+        printError("There are existed original file.");
     }
-    
+    else if(RDI->fileDescriptor==-2)
+    {
+        //TO DO
+        //When tmp file is existed
+        //Send Packet 
+        //Hash Compare
+        RDI->fileDescriptor = open(RDI->tmpFile, O_RDWR | O_CREAT | O_APPEND, 0644);
+        RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
+        lseek(RDI->fileDescriptor,0,SEEK_SET);
+        for(int i=0;i<RDI->fileSequence;i++)
+        {
+            read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
+            sha256_update(ctx, RDI->buffer, RDI->size);
+        }
+        lseek(RDI->fileDescriptor,RDI->fileSequence*BLOCK_SIZE,SEEK_SET);
+        sha256_final(ctx, RDI->servHash);
+        sha256_init(ctx);  
+        RDI->type = SEQ;
+    }
+    else
+    {
+        write( RDI->fileDescriptor, RDI->buffer, RDI->size);
+        sha256_update(ctx, RDI->buffer, RDI->size);
+        
+        if( RDI->currentSize >= RDI->fileMeta.size )
+        {
+            rename(RDI->tmpFile,RDI->pathFile);
+            printDelete("change INTE");
+            RDI->type = INTE;
+            sha256_final(ctx, RDI->servHash);
+            close(RDI->fileDescriptor);
+            printNotice("end load data");
+        }
+    }
+      
 }
 
 void deleteFile(RecievedDataInfo *RDI)
