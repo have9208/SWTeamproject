@@ -12,6 +12,7 @@ typedef struct RecievedDataInfo
     char buffer[BLOCK_SIZE];
     char tmpFile[256];
     char pathFile[256];
+    char fileType[12];
     unsigned char servHash[HASH_SIZE];
     unsigned char cliHash[HASH_SIZE];
     int type;

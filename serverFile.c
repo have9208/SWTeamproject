@@ -22,52 +22,65 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     }
     else if(RDI->fileMeta.type==FILE_TYPE)
     {
-        char tmpExtension[12] = ".tmp";
-        char tmpFile[256];
-        printDelete("change DATA");
-        RDI->type=DATA;
-        strcat(pathFile,"/");
-        strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
-        strcat(RDI->pathFile,pathFile);
-
-        strcpy(tmpFile,pathFile);
-        strncat(tmpFile,tmpExtension,strlen(tmpExtension));
-        printAdd(tmpFile);
-        strcat(RDI->tmpFile,tmpFile);
-        if((RDI->fileDescriptor = open( tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1) // tmp file is already existed
+        if ( 0 == access( RDI->fileMeta.fileName, F_OK))
         {
-            printError("There are existed canceled file.");
-            RDI->fileDescriptor = open(RDI->tmpFile, O_RDWR | O_CREAT | O_APPEND, 0644);
-            RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
-            lseek(RDI->fileDescriptor,0,SEEK_SET);
-            for(int i=0;i<RDI->fileSequence;i++)
-            {
-                read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
-                sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
-            }
-            sha256_final(ctx, RDI->servHash);
-            sha256_init(ctx);  
-            RDI->type = CHK;
+            printError("File name is same to directory");
+            RDI->type=META;
         }
-        else if((RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1)
+        else
         {
-            //TO DO
-            //When file is already existed
-            printError("There are existed file.");
-            RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
-            RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
-            lseek(RDI->fileDescriptor,0,SEEK_SET);
-            for(int i=0;i<RDI->fileSequence;i++)
+            char tmpExtension[12] = ".tmp";
+            char tmpFile[256];
+            printDelete("change DATA");
+            RDI->type=DATA;
+            strcat(pathFile,"/");
+            strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
+            strcat(RDI->pathFile,pathFile);
+
+            strcpy(tmpFile,pathFile);
+            strncat(tmpFile,tmpExtension,strlen(tmpExtension));
+            printAdd(tmpFile);
+            strcat(RDI->tmpFile,tmpFile);
+            if((RDI->fileDescriptor = open( tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1) // tmp file is already existed
             {
-                read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
-                sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
+                printError("There are existed canceled file.");
+
+                RDI->fileDescriptor = open(RDI->tmpFile, O_RDWR | O_CREAT | O_APPEND, 0644);
+                RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
+                lseek(RDI->fileDescriptor,0,SEEK_SET);
+                for(int i=0;i<RDI->fileSequence;i++)
+                {
+                    read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
+                    sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
+                }
+                sha256_final(ctx, RDI->servHash);
+                sha256_init(ctx);  
+                RDI->type = CHK;
+                RDI->fileType = "tmp";
             }
-            read(RDI->fileDescriptor,RDI->buffer,RDI->fileMeta.size - (BLOCK_SIZE)*RDI->fileSequence);
-            RDI->fileSequence = -1;
-            sha256_final(ctx, RDI->servHash);
-            sha256_init(ctx);
-            RDI->type = CHK;
-        }     
+            else if((RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1)
+            {
+                //TO DO
+                //When file is already existed
+                printError("There are existed file.");
+
+                RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
+                RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
+                lseek(RDI->fileDescriptor,0,SEEK_SET);
+                for(int i=0;i<RDI->fileSequence;i++)
+                {
+                    read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
+                    sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
+                }
+                read(RDI->fileDescriptor,RDI->buffer,RDI->fileMeta.size - (BLOCK_SIZE)*RDI->fileSequence);
+                RDI->fileSequence = -1;
+                sha256_final(ctx, RDI->servHash);
+                sha256_init(ctx);
+                RDI->type = CHK;
+                RDI->fileType = "org";
+            }
+        }
+             
     }
 }
 
@@ -88,26 +101,41 @@ void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 
 void verifyFile(RecievedDataInfo *RDI)
 {
-    if(strcmp(RDI->buffer,"error")==0) // When file is corrupted
+    // Argu List : error, overwrite,  verified, ignore
+    if(strcmp(RDI->buffer,"error")==0) // When file is corrupted (tmp? orign?)
     {
-        lseek(RDI->fileDescriptor,0,SEEK_SET);
+        if(RDI->fileType=="tmp") // This Section is able to merge!! 
+        {
+            close(RDI->fileDescriptor);
+            remove(RDI->tmpFile);
+            open(RDI->tmpFile, O_RDWR | O_CREAT | O_TRUNC , 0644);
+            
+        }
+        else if(RDI->fileType=="org")
+        {
+            close(RDI->fileDescriptor);
+            remove(RDI->pathFile);
+            open(RDI->pathFile, O_RDWR | O_CREAT | O_TRUNC , 0644);
+        }
         RDI->type=DATA;
     }
-    else if(strcmp(RDI->buffer,"verified")==0)
+    else if(strcmp(RDI->buffer,"overwrite")==0) // When orginal file is already exsited and overwrite(?)
     {
-        if(RDI->fileSequence == -1) // When file is already existed and completed
-        {
-            RDI->type=META;
-        }
-        else // When file keep going download
-        {
-            lseek(RDI->fileDescriptor,RDI->fileSequence*BLOCK_SIZE,SEEK_SET);
-            RDI->currentSize = RDI->fileSequence * BLOCK_SIZE;
-            RDI->type=DATA;
-        }      
+        remove(RDI->pathFile);
+        open(RDI->pathFile, O_RDWR | O_CREAT | O_TRUNC , 0644);
+        RDI->type=DATA;
+    }
+    //TO DO
+    //overwrite method
+    else if(strcmp(RDI->buffer,"verified")==0) // When file keep going to download (with tmp file)
+    {    
+        lseek(RDI->fileDescriptor,RDI->fileSequence*BLOCK_SIZE,SEEK_SET);
+        RDI->currentSize = RDI->fileSequence * BLOCK_SIZE;
+        RDI->type=DATA;    
     }
     else if(strcmp(RDI->buffer,"ignore")==0) // When file is already existed and ignored
-    {
-        RDI->type=META;
+    {   
+        close(RDI->fileDescriptor);
+        RDI->type=META; 
     }    
 }
