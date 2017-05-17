@@ -44,7 +44,7 @@ char* fileSequenceChk(int *fd,int sequence,int fileSize,bool lastFile);
 SHA256_CTX getHashCtx(int *fd,SHA256_CTX ctx,int fileSize);
 unsigned char* getHash(int *fd,int fileSize);
 
-int getFileSize(int fd);
+int getFileSize(char *fileName);
 int openFile(char *fileName);
 bool isDir(char *fileName);
 void closeDataFile(DataFile* data);
