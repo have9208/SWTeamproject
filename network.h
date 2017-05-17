@@ -12,6 +12,6 @@
 #define PORT 31337
 #define BLOCK_SIZE (1024 * 32)
 
-enum NetworkProtocol { UDP = 1, TCP = 2 };
+enum NetworkProtocol { UDP = 1, TCP = 2, AUTO = 3 };
 
 #endif /* NETWORK_H */
