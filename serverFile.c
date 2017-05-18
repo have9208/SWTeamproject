@@ -1,25 +1,14 @@
 #include "serverFile.h"
 
-void hashCalculate(SHA256_CTX *ctx,RecievedDataInfo *RDI)
-{
-    RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
-    RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
-    lseek(RDI->fileDescriptor,0,SEEK_SET);
-    for(int i=0;i<RDI->fileSequence;i++)
-    {
-        read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
-        sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
-    }
-    RDI->type = CHK;
-}
 void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 {
     char pathFile[256] = "data/";
+    char tmpFile[256] = "tmp/";
     char mkdirCmd[256] = "mkdir -p ";
     sha256_init(ctx);
     strcpy(RDI->servHash, "");
     strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
-    
+
     if(RDI->fileMeta.type==DIR_TYPE)
     {
         strncat(mkdirCmd,pathFile,strlen(pathFile));
@@ -50,22 +39,32 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
         else
         {
             RDI->error = 0;
-            char tmpExtension[12] = ".tmp";
-            char tmpFile[256];
+            //char tmpExtension[12] = ".tmp";
+            //char tmpFile[256];
             printDelete("change DATA");
             RDI->type=DATA;
             strcat(pathFile,"/");
             strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
+            strncat(tmpFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
             strcat(RDI->pathFile,pathFile);
+            strcat(RDI->tmpFile,tmpFile);
 
-            strcpy(tmpFile,pathFile);
-            strncat(tmpFile,tmpExtension,strlen(tmpExtension));
-            printAdd(tmpFile);
-            strcat(RDI->pathFile,tmpFile);
+            //strcpy(tmpFile,pathFile);
+            //strncat(tmpFile,tmpExtension,strlen(tmpExtension));
+            //printAdd(tmpFile);
+            //strcat(RDI->pathFile,tmpFile);
             if((RDI->fileDescriptor = open( tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1) // tmp file is already existed
             {
                 printError("There are existed canceled file.");
-                hashCalculate(ctx,RDI);
+                RDI->fileDescriptor = open(RDI->tmpFile, O_RDWR | O_CREAT | O_APPEND, 0644);
+                RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
+                lseek(RDI->fileDescriptor,0,SEEK_SET);
+                for(int i=0;i<RDI->fileSequence;i++)
+                {
+                    read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
+                    sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
+                }
+                RDI->type = CHK;
                 sha256_final(ctx, RDI->servHash);
                 sha256_init(ctx);  
                 
@@ -74,14 +73,22 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
             {
                 //TO DO
                 //When file is already existed
-                strcat(RDI->pathFile,pathFile);
+                //strcat(RDI->pathFile,pathFile);
                 printError("There are existed file.");
-                hashCalculate(ctx,RDI);
+                RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
+                RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
+                lseek(RDI->fileDescriptor,0,SEEK_SET);
+                for(int i=0;i<RDI->fileSequence;i++)
+                {
+                    read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
+                    sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
+                }
                 read(RDI->fileDescriptor,RDI->buffer,RDI->fileMeta.size - (BLOCK_SIZE)*RDI->fileSequence);
                 sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
                 sha256_final(ctx, RDI->servHash);
                 sha256_init(ctx);  
                 RDI->fileSequence = -1;
+                RDI->type = CHK;
             }
         }
              
@@ -94,10 +101,10 @@ void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     sha256_update(ctx, RDI->buffer, RDI->size); 
     if( RDI->currentSize >= RDI->fileMeta.size )
     {
-        char tmpFile[256];
-        strcat(tmpFile,RDI->pathFile);
-        RDI->pathFile[strlen(RDI->pathFile)-4]='\0';
-        rename(tmpFile,RDI->pathFile);
+        //char tmpFile[256];
+        //strcat(tmpFile,RDI->pathFile);
+        //RDI->pathFile[strlen(RDI->pathFile)-4]='\0';
+        rename(RDI->tmpFile,RDI->pathFile);
         printDelete("change INTE");
         RDI->type = INTE;
         sha256_final(ctx, RDI->servHash);
@@ -112,8 +119,8 @@ void verifyFile(RecievedDataInfo *RDI)
     if(strcmp(RDI->buffer,"error")==0) // When file is corrupted ( file overwrite, rewrite )
     {
         close(RDI->fileDescriptor);
-        remove(RDI->pathFile);
-        open(RDI->pathFile, O_RDWR | O_CREAT | O_TRUNC , 0644);
+        remove(RDI->tmpFile);
+        open(RDI->tmpFile, O_RDWR | O_CREAT | O_TRUNC , 0644);
         RDI->type=DATA;
     }
     else if(strcmp(RDI->buffer,"verified")==0) // When file keep going to download (with tmp file)
