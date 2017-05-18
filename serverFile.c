@@ -20,8 +20,6 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     char mkdirCmd[256] = "mkdir -p ";
     sha256_init(ctx);
     strcpy(RDI->servHash, "");
-    //TO DO
-    //Directory Temp Path
     strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
     
     if(RDI->fileMeta.type==DIR_TYPE)
@@ -29,9 +27,15 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
         strncat(mkdirCmd,pathFile,strlen(pathFile));
         strcat(mkdirCmd,"/");
         strncat(mkdirCmd, RDI->fileMeta.fileName, strlen(RDI->fileMeta.fileName));
-        printAdd(mkdirCmd);
-        system(mkdirCmd);
-        printDelete("change META");
+        printAdd(mkdirCmd);        
+        if(system(mkdirCmd)) //When directory name is same as file name
+        {
+            printError("Directory name is same as file name in CWD");
+        }
+        else
+        {
+            printDelete("change META");
+        }     
         RDI->type=META;
     }
     else if(RDI->fileMeta.type==FILE_TYPE)
@@ -98,7 +102,7 @@ void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 void verifyFile(RecievedDataInfo *RDI)
 {
     // Argu List : error ,  verified, ignore
-    if(strcmp(RDI->buffer,"error")==0) // When file is corrupted (tmp? orign?)
+    if(strcmp(RDI->buffer,"error")==0) // When file is corrupted ( file overwrite, rewrite )
     {
         close(RDI->fileDescriptor);
         remove(RDI->pathFile);
