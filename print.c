@@ -115,3 +115,14 @@ void clearLine()
     }
     printf("\r");
 }
+
+void printHash(char* hash)
+{
+    int i;
+    printf("[*] HASH: ");
+    for (i = 0; i < HASH_SIZE; i+=4)
+    {
+        printf("%08x", *(int*)&hash[i]);
+    }
+    puts("");
+}

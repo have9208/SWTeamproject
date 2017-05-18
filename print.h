@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include <sys/ioctl.h>
+#include "sha256.h"
 
 void printNotice(char *msg);
 void printError(char *msg);
@@ -16,5 +17,6 @@ void printSpeedByte(struct timeval start, struct timeval end, int size, int nows
 
 int getConsoleWidth();
 void clearLine();
+void printHash(char* hash);
 
 #endif /* PRINT_H */

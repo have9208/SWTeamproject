@@ -34,7 +34,7 @@ clientNetwork.o: clientNetwork.c clientNetwork.h network.h file.h print.o sha256
 clientFile.o: clientFile.c clientFile.h file.h sha256.o print.o
 	$(CC) -c clientFile.c $(CFLAGS)
 
-print.o: print.c print.h
+print.o: print.c print.h sha256.o
 	$(CC) -c print.c $(CFLAGS)
 
 sha256.o: sha256.c sha256.h
