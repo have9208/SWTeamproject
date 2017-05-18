@@ -10,8 +10,6 @@ void hashCalculate(SHA256_CTX *ctx,RecievedDataInfo *RDI)
         read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
         sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
     }
-    sha256_final(ctx, RDI->servHash);
-    sha256_init(ctx);  
     RDI->type = CHK;
 }
 void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
@@ -68,6 +66,8 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
             {
                 printError("There are existed canceled file.");
                 hashCalculate(ctx,RDI);
+                sha256_final(ctx, RDI->servHash);
+                sha256_init(ctx);  
                 
             }
             else if((RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1)
@@ -78,6 +78,9 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
                 printError("There are existed file.");
                 hashCalculate(ctx,RDI);
                 read(RDI->fileDescriptor,RDI->buffer,RDI->fileMeta.size - (BLOCK_SIZE)*RDI->fileSequence);
+                sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
+                sha256_final(ctx, RDI->servHash);
+                sha256_init(ctx);  
                 RDI->fileSequence = -1;
             }
         }
