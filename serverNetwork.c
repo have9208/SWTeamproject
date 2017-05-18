@@ -103,8 +103,30 @@ int sendComp(SocketInfo *sockInfo, char *buffer, int size)
     }
 }
 
-void sendHash(SocketInfo *sockInfo, RecievedDataInfo *dataInfo){
-    sendComp(sockInfo, dataInfo->servHash, HASH_SIZE);
+void sendCheckData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
+{
+    int seq = dataInfo->fileSequence;
+    FileCheckData checkData;
+
+    if(dataInfo->error)
+    {
+        checkData.error = OTHER_ERR;
+    }
+    else
+    {
+        if(dataInfo->type == CHK)
+        {
+            checkData.error = EXIST_ERR;
+        }
+        else
+        {
+            checkData.error = NONE_ERR;
+        }
+    }
+
+    strncpy(checkData.hash, dataInfo->servHash, HASH_SIZE);
+    checkData.size = (seq == -1)? seq : seq * BLOCK_SIZE;
+    sendComp(sockInfo, (char *)&checkData, 1);
 }
 
 void sendIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
@@ -154,8 +176,9 @@ int receiveMeta(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     return nbyte;
 }
 
-int receiveIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo){
-    int nbyte = recvComp(sockInfo, &(dataInfo->buffer[0]), 1);
+int receiveCheckResult(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
+{
+    int nbyte = recvComp(sockInfo, dataInfo->buffer, 1);
     return nbyte;
 }
 
@@ -170,11 +193,12 @@ int receiveHash(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 
 int receive(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
-    int type = dataInfo->type;
-    switch(type)
+    switch(dataInfo->type)
     {
         case META:
             return receiveMeta(sockInfo, dataInfo);
+        case CHK:
+            return receiveCheckResult(sockInfo, dataInfo);
         case DATA:
             return receiveData(sockInfo, dataInfo);
         case INTE:

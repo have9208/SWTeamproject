@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
     }
     
     serverSocket(&sockInfo, &dataInfo);
+    sockId = sockInfo.sockId;
     oldSignal = signal(SIGINT, exitSignal);
 
     while( acceptComp(&sockInfo) )
@@ -53,17 +54,21 @@ int main(int argc, char *argv[])
                 break;
             }
 
-            if(dataInfo.type == META)
+            switch(dataInfo.type)
             {
-                checkFile(&ctx,&dataInfo);
-            }
-            else if(dataInfo.type == DATA)
-            {
-                writeFile(&ctx,&dataInfo);
-            }
-            else if(dataInfo.type == INTE)
-            {
-                sendIntegrity(&sockInfo, &dataInfo);
+                case META:
+                    checkFile(&ctx,&dataInfo);
+                    sendCheckData(&sockInfo, &dataInfo);
+                    break;
+                case CHK:
+                    verifyFile(&dataInfo);
+                    break;
+                case DATA:
+                    writeFile(&ctx,&dataInfo);
+                    break;
+                case INTE:
+                    sendIntegrity(&sockInfo, &dataInfo);
+                    break;
             }
 
         }
