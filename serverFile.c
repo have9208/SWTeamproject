@@ -11,6 +11,10 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 
     if(RDI->fileMeta.type==DIR_TYPE)
     {
+        strncat(mkdirCmd,tmpFile,strlen(tmpFile)); // Make tmp directory
+        system(mkdirCmd);
+        
+        mkdirCmd="mkdir -p ";
         strncat(mkdirCmd,pathFile,strlen(pathFile));
         strcat(mkdirCmd,"/");
         strncat(mkdirCmd, RDI->fileMeta.fileName, strlen(RDI->fileMeta.fileName));
