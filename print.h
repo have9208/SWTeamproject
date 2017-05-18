@@ -15,5 +15,6 @@ void printClientHelp(char* name);
 void printSpeedByte(struct timeval start, struct timeval end, int size, int nowsize, int maxsize);
 
 int getConsoleWidth();
+void clearLine();
 
 #endif /* PRINT_H */

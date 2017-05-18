@@ -2,24 +2,28 @@
 
 void printNotice(char *msg)
 {
+    clearLine();
     printf("[*] ");
     printf("%s\n", msg);
 }
 
 void printError(char *msg)
 {
+    clearLine();
     printf("\x1B[31m[!]\x1B[0m ");
     printf("%s\n", msg);
 }
 
 void printAdd(char *msg)
 {
+    clearLine();
     printf("\x1B[32m[+]\x1B[0m ");
     printf("%s\n", msg);
 }
 
 void printDelete(char *msg)
 {
+    clearLine();
     printf("\x1B[33m[-]\x1B[0m ");
     printf("%s\n", msg);
 }
@@ -99,4 +103,15 @@ int getConsoleWidth()
     ioctl(0, TIOCGWINSZ, &w);
 
     return w.ws_col;
+}
+
+void clearLine()
+{
+    int i, s = getConsoleWidth();
+
+    for (i = 0; i < s; i++)
+    {
+        printf(" ");
+    }
+    printf("\r");
 }
