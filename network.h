@@ -8,6 +8,7 @@
 // #include <sys/types.h>
 // #include <sys/socket.h>
 #include <arpa/inet.h>
+#include "sha256.h"
 
 #define PORT 31337
 #define BLOCK_SIZE (1024 * 32)
@@ -18,7 +19,7 @@ enum ErrorCode { NONE_ERR, EXIST_ERR, OTHER_ERR };
 typedef struct FileCheckData
 {
     enum ErrorCode error;
-    char hash[32];
+    char hash[HASH_SIZE];
     int size;
 } FileCheckData;
 
