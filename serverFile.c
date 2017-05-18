@@ -30,7 +30,8 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
         printAdd(mkdirCmd);        
         if(system(mkdirCmd)) //When directory name is same as file name
         {
-            printError("Directory name is same as file name in CWD");
+            printError("Directory name is same as file name in CWD"); // MKDIR_ERR
+            RDI->errorType = MKDIR_ERR;
         }
         else
         {
@@ -43,7 +44,8 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
         DIR* isdir = opendir(RDI->fileMeta.fileName);
         if (isdir)   // When file name is same as directory name
         {
-            printError("File name is same as directory name in CWD");
+            printError("File name is same as directory name in CWD"); // CREATE_ERR
+            RDI->errorType = CREATE_ERR;
             RDI->type=META;
         }
         else
