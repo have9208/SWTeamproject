@@ -31,10 +31,11 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
         if(system(mkdirCmd)) //When directory name is same as file name
         {
             printError("Directory name is same as file name in CWD"); // MKDIR_ERR
-            RDI->errorType = MKDIR_ERR;
+            RDI->error = 1;
         }
         else
         {
+            RDI->error = 0;
             printDelete("change META");
         }     
         RDI->type=META;
@@ -45,11 +46,12 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
         if (isdir)   // When file name is same as directory name
         {
             printError("File name is same as directory name in CWD"); // CREATE_ERR
-            RDI->errorType = CREATE_ERR;
+            RDI->error = 1;
             RDI->type=META;
         }
         else
         {
+            RDI->error = 0;
             char tmpExtension[12] = ".tmp";
             char tmpFile[256];
             printDelete("change DATA");

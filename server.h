@@ -6,15 +6,14 @@
 #include "serverNetwork.h"
 
 enum PacketType {META=1,CHK=2,DATA=3,INTE=4};
-enum ErrorType {MKDIR_ERR=1,CREATE_ERR=2};
 
 typedef struct RecievedDataInfo
 {
+    char error; 
     char buffer[BLOCK_SIZE];
     char pathFile[256];
     unsigned char servHash[HASH_SIZE];
     unsigned char cliHash[HASH_SIZE];
-    int errorType;
     int type;
     int size;
     int currentSize;
