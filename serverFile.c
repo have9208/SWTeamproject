@@ -40,12 +40,13 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
             strcpy(tmpFile,pathFile);
             strncat(tmpFile,tmpExtension,strlen(tmpExtension));
             printAdd(tmpFile);
-            strcat(RDI->tmpFile,tmpFile);
+            
             if((RDI->fileDescriptor = open( tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1) // tmp file is already existed
             {
+                strcat(RDI->pathFile,tmpFile);
                 printError("There are existed canceled file.");
 
-                RDI->fileDescriptor = open(RDI->tmpFile, O_RDWR | O_CREAT | O_APPEND, 0644);
+                RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
                 RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
                 lseek(RDI->fileDescriptor,0,SEEK_SET);
                 for(int i=0;i<RDI->fileSequence;i++)
@@ -62,6 +63,7 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
             {
                 //TO DO
                 //When file is already existed
+                strcat(RDI->pathFile,pathFile);
                 printError("There are existed file.");
 
                 RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
@@ -90,7 +92,10 @@ void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     sha256_update(ctx, RDI->buffer, RDI->size); 
     if( RDI->currentSize >= RDI->fileMeta.size )
     {
-        rename(RDI->tmpFile,RDI->pathFile);
+        char tmpFile[256];
+        strcat(tmpFile,RDI->pathFile);
+        RDI->pathFile[strlen(RDI->pathFile)-4]='\0';
+        rename(tmpFile,RDI->pathFile);
         printDelete("change INTE");
         RDI->type = INTE;
         sha256_final(ctx, RDI->servHash);
@@ -101,32 +106,14 @@ void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 
 void verifyFile(RecievedDataInfo *RDI)
 {
-    // Argu List : error, overwrite,  verified, ignore
+    // Argu List : error ,  verified, ignore
     if(strcmp(RDI->buffer,"error")==0) // When file is corrupted (tmp? orign?)
     {
-        if(RDI->fileType=="tmp") // This Section is able to merge!! 
-        {
-            close(RDI->fileDescriptor);
-            remove(RDI->tmpFile);
-            open(RDI->tmpFile, O_RDWR | O_CREAT | O_TRUNC , 0644);
-            
-        }
-        else if(RDI->fileType=="org")
-        {
-            close(RDI->fileDescriptor);
-            remove(RDI->pathFile);
-            open(RDI->pathFile, O_RDWR | O_CREAT | O_TRUNC , 0644);
-        }
-        RDI->type=DATA;
-    }
-    else if(strcmp(RDI->buffer,"overwrite")==0) // When orginal file is already exsited and overwrite(?)
-    {
+        close(RDI->fileDescriptor);
         remove(RDI->pathFile);
         open(RDI->pathFile, O_RDWR | O_CREAT | O_TRUNC , 0644);
         RDI->type=DATA;
     }
-    //TO DO
-    //overwrite method
     else if(strcmp(RDI->buffer,"verified")==0) // When file keep going to download (with tmp file)
     {    
         lseek(RDI->fileDescriptor,RDI->fileSequence*BLOCK_SIZE,SEEK_SET);
