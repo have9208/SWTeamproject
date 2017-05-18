@@ -16,6 +16,8 @@
 enum NetworkProtocol { UDP, TCP, AUTO};
 enum ErrorCode { NONE_ERR, EXIST_ERR, OTHER_ERR };
 
+enum ServerCommandCode { APPEND, REWRITE, IGNORE };
+
 typedef struct FileCheckData
 {
     enum ErrorCode error;
