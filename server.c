@@ -53,17 +53,21 @@ int main(int argc, char *argv[])
                 printNotice("Close client connection.");
                 break;
             }
-
+            printf("NOW : %d\n",dataInfo.type);
             switch(dataInfo.type)
-            {
+            {           
                 case META:
+                    printf("META\n");
+                    printf("File name : %s\n",dataInfo.fileMeta.fileName);                   
                     checkFile(&ctx,&dataInfo);
                     sendCheckData(&sockInfo, &dataInfo);
                     break;
                 case CHK:
+                    printf("CHK\n");
                     verifyFile(&dataInfo);
                     break;
                 case DATA:
+                    printf("DATA\n");
                     writeFile(&ctx,&dataInfo);
                     break;
                 case INTE:
