@@ -57,7 +57,6 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
                 sha256_final(ctx, RDI->servHash);
                 sha256_init(ctx);  
                 RDI->type = CHK;
-                RDI->fileType = "tmp";
             }
             else if((RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1)
             {
@@ -79,7 +78,6 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
                 sha256_final(ctx, RDI->servHash);
                 sha256_init(ctx);
                 RDI->type = CHK;
-                RDI->fileType = "org";
             }
         }
              
