@@ -40,10 +40,9 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
             strcpy(tmpFile,pathFile);
             strncat(tmpFile,tmpExtension,strlen(tmpExtension));
             printAdd(tmpFile);
-            
+            strcat(RDI->pathFile,tmpFile);
             if((RDI->fileDescriptor = open( tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1) // tmp file is already existed
             {
-                strcat(RDI->pathFile,tmpFile);
                 printError("There are existed canceled file.");
 
                 RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
