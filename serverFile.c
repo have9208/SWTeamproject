@@ -13,8 +13,8 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     {
         strncat(mkdirCmd,tmpFile,strlen(tmpFile)); // Make tmp directory
         system(mkdirCmd);
-        
-        mkdirCmd="mkdir -p ";
+
+        strcpy(mkdirCmd,"mkdir -p ");
         strncat(mkdirCmd,pathFile,strlen(pathFile));
         strcat(mkdirCmd,"/");
         strncat(mkdirCmd, RDI->fileMeta.fileName, strlen(RDI->fileMeta.fileName));
