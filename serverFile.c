@@ -1,5 +1,19 @@
 #include "serverFile.h"
 
+void hashCalculate(SHA256_CTX *ctx,RecievedDataInfo *RDI)
+{
+    RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
+    RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
+    lseek(RDI->fileDescriptor,0,SEEK_SET);
+    for(int i=0;i<RDI->fileSequence;i++)
+    {
+        read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
+        sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
+    }
+    sha256_final(ctx, RDI->servHash);
+    sha256_init(ctx);  
+    RDI->type = CHK;
+}
 void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 {
     char pathFile[256] = "data/";
@@ -22,9 +36,10 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     }
     else if(RDI->fileMeta.type==FILE_TYPE)
     {
-        if ( 0 == access( RDI->fileMeta.fileName, F_OK))
+        DIR* isdir = opendir(RDI->fileMeta.fileName);
+        if (isdir)   // When file name is same as directory name
         {
-            printError("File name is same to directory");
+            printError("File name is same as directory name in CWD");
             RDI->type=META;
         }
         else
@@ -44,18 +59,8 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
             if((RDI->fileDescriptor = open( tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1) // tmp file is already existed
             {
                 printError("There are existed canceled file.");
-
-                RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
-                RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
-                lseek(RDI->fileDescriptor,0,SEEK_SET);
-                for(int i=0;i<RDI->fileSequence;i++)
-                {
-                    read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
-                    sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
-                }
-                sha256_final(ctx, RDI->servHash);
-                sha256_init(ctx);  
-                RDI->type = CHK;
+                hashCalculate(ctx,RDI);
+                
             }
             else if((RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1)
             {
@@ -63,20 +68,9 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
                 //When file is already existed
                 strcat(RDI->pathFile,pathFile);
                 printError("There are existed file.");
-
-                RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
-                RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
-                lseek(RDI->fileDescriptor,0,SEEK_SET);
-                for(int i=0;i<RDI->fileSequence;i++)
-                {
-                    read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
-                    sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
-                }
+                hashCalculate(ctx,RDI);
                 read(RDI->fileDescriptor,RDI->buffer,RDI->fileMeta.size - (BLOCK_SIZE)*RDI->fileSequence);
                 RDI->fileSequence = -1;
-                sha256_final(ctx, RDI->servHash);
-                sha256_init(ctx);
-                RDI->type = CHK;
             }
         }
              

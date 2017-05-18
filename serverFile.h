@@ -8,12 +8,14 @@
 #include <unistd.h>        // write(), close()
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <dirent.h>
 #include "print.h"
 #include "sha256.h"
 #include "server.h"
 
 typedef struct RecievedDataInfo RecievedDataInfo;
 
+void hashCalculate(SHA256_CTX *ctx,RecievedDataInfo *RDI);
 void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI);
 void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI);
 void verifyFile(RecievedDataInfo *RDI);
