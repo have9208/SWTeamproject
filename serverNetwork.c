@@ -124,7 +124,7 @@ void sendCheckData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
         }
     }
 
-    strncpy(checkData.hash, dataInfo->servHash, HASH_SIZE);
+    memcpy(checkData.hash, dataInfo->servHash, HASH_SIZE);
     checkData.size = (seq == -1)? seq : seq * BLOCK_SIZE;
     sendComp(sockInfo, (char *)&checkData, sizeof(checkData));
 }
