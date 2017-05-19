@@ -73,11 +73,13 @@ void sendBuffer(NetworkInfo* n, void* data, int size)
 
 void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
 {
-    char *fullName = makeFullPath(parent, fileName), *hash;
+    char *fullName = makeFullPath(parent, fileName), *hash, input;
     FileMetadata *meta;
     MetaDir *dir;
     NetworkInfo* n;
     int i, fd;
+    FileCheckData error;
+    enum ServerCommandCode code;
 
     // Directory
     if (isDir(fullName))
@@ -89,11 +91,11 @@ void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
         dir = listDirectory(fullName);
         meta = makeFileMetadata(DIR_TYPE, 0, parent, fileName);
 
-        sendFileMetadata(n, meta);
+        error = sendFileMetadata(n, meta);
 
         closeSocket(n);
 
-        for (i = 0; i < dir->childs; i++)
+        if (error.error != OTHER_ERR)
         {
             sendFile(netMeta, fullName, dir->files[i].fileName);
         }
@@ -110,8 +112,8 @@ void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
         i = getFileSize(fullName);
         fd = openFile(fullName);
         meta = makeFileMetadata(FILE_TYPE, i, parent, fileName);
-        hash = getHash(fd, i);
 
+        // Check Protocol
         if (netMeta->protocol == AUTO)
         {
             if (i <= 64 * 1024)
@@ -128,15 +130,25 @@ void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
             n = connectSocket(netMeta->ip, netMeta->port, netMeta->protocol);
         }
 
-        sendFileMetadata(n, meta);
-        sendFileData(n, fd, 0, i);
-        sendHash(n, hash);
+        error = sendFileMetadata(n, meta);
+
+        switch (error.error)
+        {
+            case NONE_ERR:
+                printNotice("NONE_ERR");
+                code = REWRITE;
+                break;
+            case EXIST_ERR:
+                printNotice("EXIST_ERR");
+                printf("%d\n", error.size);
+                if (error.size == -1)
+                {
+
 
         free(hash);
         closeSocket(n);
         closeFileMetadata(meta);
         close(fd);
-
     }
 }
 
@@ -154,7 +166,6 @@ void sendFileData(NetworkInfo* n, int fd, int offset, int size)
 
     for (i = 0; i < c; i++)
     {
-        usleep(30);
         if (!(i % 40))
         { 
             before = after;
@@ -192,14 +203,12 @@ void sendFileData(NetworkInfo* n, int fd, int offset, int size)
 
 }
 
-void sendFileMetadata(NetworkInfo* n, FileMetadata* meta)
 {
     sendBuffer(n, meta, sizeof(*meta));
 }
 
 void sendHash(NetworkInfo* n, unsigned char* hash)
 {
-    usleep(500);
     sendBuffer(n, hash, HASH_SIZE);
 
     printNotice("Hash!!");
