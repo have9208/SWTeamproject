@@ -6,6 +6,7 @@
 #include "serverNetwork.h"
 
 enum PacketType {META=1,CHK=2,DATA=3,INTE=4};
+enum ServerCommandCode { APPEND, REWRITE, IGNORE };
 
 typedef struct RecievedDataInfo
 {

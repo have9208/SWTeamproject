@@ -1,174 +1,150 @@
-#include "serverFile.h"
+    #include "serverFile.h"
 
-void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
-{
-    char pathFile[256] = "data/";
-    char tmpFile[256] = "tmp/";
-    char mkdirCmd[256] = "mkdir -p ";
-    printf("HASH INIT_checkFile\n");
-    sha256_init(ctx);
-    strcpy(RDI->servHash, "");
-    strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
-
-    if(RDI->fileMeta.type==DIR_TYPE)
+    void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     {
-        strncat(mkdirCmd,tmpFile,strlen(tmpFile)); // Make tmp directory
-        system(mkdirCmd);
+        char pathFile[256] = "data/";
+        char tmpFile[256] = "tmp/";
+        char mkdirCmd[256] = "mkdir -p ";
+        printf("HASH INIT_checkFile\n");
+        sha256_init(ctx);
+        strcpy(RDI->servHash, "");
+        strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
 
-        strcpy(mkdirCmd,"mkdir -p ");
-        strncat(mkdirCmd,pathFile,strlen(pathFile));
-        strcat(mkdirCmd,"/");
-        strncat(mkdirCmd, RDI->fileMeta.fileName, strlen(RDI->fileMeta.fileName));
-        printAdd(mkdirCmd);      
-        if(system(mkdirCmd)) //When directory name is same as file name
+        if(RDI->fileMeta.type==DIR_TYPE)
         {
-            printError("Directory name is same as file name in CWD"); // MKDIR_ERR
-            RDI->error = 1;
-        }
-        else
-        {
-            RDI->error = 0;
-            printDelete("change META");
-        }     
-        RDI->type=META;
-    }
-    else if(RDI->fileMeta.type==FILE_TYPE)
-    {   
-        printf("File Section!!\n");
-        DIR* isdir = opendir(RDI->fileMeta.fileName);
-        if (isdir)   // When file name is same as directory name
-        {
-            printError("File name is same as directory name in CWD"); // CREATE_ERR
-            RDI->error = 1;
+            strncat(mkdirCmd,tmpFile,strlen(tmpFile)); // Make tmp directory
+            system(mkdirCmd);
+
+            strcpy(mkdirCmd,"mkdir -p ");
+            strncat(mkdirCmd,pathFile,strlen(pathFile));
+            strcat(mkdirCmd,"/");
+            strncat(mkdirCmd, RDI->fileMeta.fileName, strlen(RDI->fileMeta.fileName));
+            printAdd(mkdirCmd);      
+            if(system(mkdirCmd)) //When directory name is same as file name
+            {
+                printError("Directory name is same as file name in CWD"); // MKDIR_ERR
+                RDI->error = 1;
+            }
+            else
+            {
+                RDI->error = 0;
+                printDelete("change META");
+            }     
             RDI->type=META;
         }
-        else
-        {
-            RDI->error = 0;
-            //char tmpExtension[12] = ".tmp";
-            //char tmpFile[256];
-            printDelete("change DATA");
-            RDI->type=DATA;
-            strcat(pathFile,"/");
-            strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
-            strncat(tmpFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
-            strcpy(RDI->pathFile,pathFile);
-            strcpy(RDI->tmpFile,tmpFile);
-
-            //strcpy(tmpFile,pathFile);
-            //strncat(tmpFile,tmpExtension,strlen(tmpExtension));
-            //printAdd(tmpFile);
-            //strcat(RDI->pathFile,tmpFile);
-            if((RDI->fileDescriptor = open( tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1) // tmp file is already existed
+        else if(RDI->fileMeta.type==FILE_TYPE)
+        {   
+            DIR* isdir = opendir(RDI->fileMeta.fileName);
+            if (isdir)   // When file name is same as directory name
             {
-                printf("Tmp file path : %s\n",tmpFile);
-                printError("There are existed canceled file.");
-                RDI->fileDescriptor = open(RDI->tmpFile, O_RDWR | O_CREAT | O_APPEND, 0644);
-                RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
-                lseek(RDI->fileDescriptor,0,SEEK_SET);
-                for(int i=0;i<RDI->fileSequence;i++)
-                {
-                    read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
-                    sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
-                }
-                RDI->type = CHK;
-                sha256_final(ctx, RDI->servHash);
-                sha256_init(ctx);  
-                printf("HASH INIT_tmpFileExisted\n");
+                printError("File name is same as directory name in CWD"); // CREATE_ERR
+                RDI->error = 1;
+                RDI->type=META;
+            }
+            else
+            {
+                RDI->error = 0;
+                printDelete("change DATA");
+                RDI->type=DATA;
+                strcat(pathFile,"/");
+                strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
+                strncat(tmpFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
+                strcpy(RDI->pathFile,pathFile);
+                strcpy(RDI->tmpFile,tmpFile);
                 
-            }
-            else if((RDI->fileDescriptor = open( pathFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1)
-            {
-                //TO DO
-                //When file is already existed
-                //strcat(RDI->pathFile,pathFile);
-                sha256_init(ctx);  
-                printError("There are existed file.");
-                RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
-                RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
-                printf("File Name ==> %s\n",RDI->pathFile);
-                printf("File Sequence ==> %d\n",RDI->fileSequence);
-                printf("File size ==>%d\n",RDI->size);
-                lseek(RDI->fileDescriptor,0,SEEK_SET);
-                for(int i=0;i<RDI->fileSequence;i++)
+                if ( 0 == access( RDI->pathFile, F_OK))
                 {
-                    read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
-                    printf("---> %d\n",i);
-                    sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
+                    sha256_init(ctx);  
+                    printError("There are existed file.");
+                    RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
+                    RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
+                    printf("File Name ==> %s\n",RDI->pathFile);
+                    printf("File Sequence ==> %d\n",RDI->fileSequence);
+                    printf("File size ==>%d\n",RDI->size);
+                    lseek(RDI->fileDescriptor,0,SEEK_SET);
+                    for(int i=0;i<RDI->fileSequence;i++)
+                    {
+                        read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
+                        printf("---> %d\n",i);
+                        sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
+                    }
+                    if(RDI->size % BLOCK_SIZE != 0)
+                    {
+                        printf("size ---> %d \n",RDI->fileMeta.size % (BLOCK_SIZE));
+                        read(RDI->fileDescriptor,RDI->buffer,RDI->fileMeta.size % (BLOCK_SIZE));
+                        printf("read data ===> %s \n",RDI->buffer);
+                        sha256_update(ctx, RDI->buffer, RDI->fileMeta.size % (BLOCK_SIZE));
+                    }             
+                    sha256_final(ctx, RDI->servHash);
+                    sha256_init(ctx);  
+                    RDI->fileSequence = -1;
+                    RDI->type = CHK;
                 }
-                if(RDI->size % BLOCK_SIZE != 0)
+                else if ((RDI->fileDescriptor = open( RDI->tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1)
                 {
-                    printf("size ---> %d \n",RDI->fileMeta.size % (BLOCK_SIZE));
-                    read(RDI->fileDescriptor,RDI->buffer,RDI->fileMeta.size % (BLOCK_SIZE));
-                    printf("read data ===> %s \n",RDI->buffer);
-                    sha256_update(ctx, RDI->buffer, RDI->fileMeta.size % (BLOCK_SIZE));
-                }             
-                sha256_final(ctx, RDI->servHash);
-                sha256_init(ctx);  
-                RDI->fileSequence = -1;
-                RDI->type = CHK;
-                printf("HASH INIT_OrgFileExisted\n");
-            }
-            printHash(RDI->servHash);
+                    printf("Tmp file path : %s\n",tmpFile);
+                    printError("There are existed canceled file.");
+                    RDI->fileDescriptor = open(RDI->tmpFile, O_RDWR | O_CREAT | O_APPEND, 0644);
+                    RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END) / BLOCK_SIZE;
+                    lseek(RDI->fileDescriptor,0,SEEK_SET);
+                    for(int i=0;i<RDI->fileSequence;i++)
+                    {
+                        read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
+                        sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
+                    }
+                    RDI->type = CHK;
+                    sha256_final(ctx, RDI->servHash);
+                    sha256_init(ctx);  
+                }
+                printHash(RDI->servHash);
+            }        
         }
-             
     }
-}
 
-void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
-{
-    //RDI->buffer[strlen(RDI->buffer)-1]='\0';
-    write( RDI->fileDescriptor, RDI->buffer, RDI->size);
-    printf("Write Buffer =======> %s\n",RDI->buffer);
-    sha256_update(ctx, RDI->buffer, RDI->size); 
-    printf("RDI->size : %d\n",RDI->size);
-    printf("currentSize : %d\n",RDI->currentSize);
-    printf("fileSize : %d\n",RDI->fileMeta.size);
-    printf("name : %s\n",RDI->fileMeta.fileName);
-    if( RDI->currentSize >= RDI->fileMeta.size )
+    void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     {
-        //char tmpFile[256];
-        //strcat(tmpFile,RDI->pathFile);
-        //RDI->pathFile[strlen(RDI->pathFile)-4]='\0';
-        printf("tmp file printf : %s\n",RDI->tmpFile);
-        //char cmd[256] = "mv ";
-        //strcat(cmd,RDI->tmpFile);
-        //strcat(cmd," ");
-        //strcat(cmd,RDI->pathFile);
-        //system(cmd);
-        rename(RDI->tmpFile,RDI->pathFile);
-        printDelete("change INTE");
-        RDI->type = INTE;
-        sha256_final(ctx, RDI->servHash);
-        close(RDI->fileDescriptor);
-        printNotice("end load data");
+        write( RDI->fileDescriptor, RDI->buffer, RDI->size);
+        printf("Write Buffer =======> %s\n",RDI->buffer);
+        sha256_update(ctx, RDI->buffer, RDI->size); 
+        printf("RDI->size : %d\n",RDI->size);
+        printf("currentSize : %d\n",RDI->currentSize);
+        printf("fileSize : %d\n",RDI->fileMeta.size);
+        printf("name : %s\n",RDI->fileMeta.fileName);
+        if( RDI->currentSize >= RDI->fileMeta.size )
+        {
+            printf("tmp file printf : %s\n",RDI->tmpFile);
+            rename(RDI->tmpFile,RDI->pathFile);
+            printDelete("change INTE");
+            RDI->type = INTE;
+            sha256_final(ctx, RDI->servHash);
+            close(RDI->fileDescriptor);
+            printNotice("end load data");
+        }
     }
-}
 
-void verifyFile(RecievedDataInfo *RDI)
-{
-    // Argu List : error ,  verified, ignore
-    printf("buffer = %d\n",RDI->buffer[0]);
-    if(RDI->buffer[0] == REWRITE ) // When file is corrupted ( file overwrite, rewrite )
+    void verifyFile(RecievedDataInfo *RDI)
     {
-        printf("REWRITE\n");
-        close(RDI->fileDescriptor);
-        remove(RDI->tmpFile);
-        open(RDI->tmpFile, O_RDWR | O_CREAT | O_TRUNC , 0644);
-        RDI->type=DATA;
+        // Argu List : error ,  verified, ignore
+        printf("buffer = %d\n",RDI->buffer[0]);
+        if(RDI->buffer[0] == REWRITE ) // When file is corrupted ( file overwrite, rewrite )
+        {
+            printf("REWRITE\n");
+            close(RDI->fileDescriptor);
+            remove(RDI->tmpFile);
+            RDI->fileDescriptor = open(RDI->tmpFile, O_RDWR | O_CREAT | O_TRUNC , 0644);
+            RDI->type=DATA;
+        }
+        else if(RDI->buffer[0] == APPEND) // When file keep going to download (with tmp file)
+        {    
+            printf("APPEND\n");
+            lseek(RDI->fileDescriptor,RDI->fileSequence*BLOCK_SIZE,SEEK_SET);
+            RDI->currentSize = RDI->fileSequence * BLOCK_SIZE;
+            RDI->type=DATA;    
+        }
+        else if(RDI->buffer[0] == IGNORE) // When file is already existed and ignored
+        {   
+            printf("IGNORE\n");
+            close(RDI->fileDescriptor);
+            RDI->type=META; 
+        }    
     }
-    else if(RDI->buffer[0] == APPEND) // When file keep going to download (with tmp file)
-    {    
-        printf("APPEND\n");
-        lseek(RDI->fileDescriptor,RDI->fileSequence*BLOCK_SIZE,SEEK_SET);
-        RDI->currentSize = RDI->fileSequence * BLOCK_SIZE;
-        RDI->type=DATA;    
-    }
-    else if(RDI->buffer[0] == IGNORE) // When file is already existed and ignored
-    {   
-        printf("IGNORE\n");
-        close(RDI->fileDescriptor);
-        remove(RDI->tmpFile);
-        RDI->type=META; 
-    }    
-}
