@@ -57,7 +57,8 @@ int main(int argc, char *argv[])
             switch(dataInfo.type)
             {           
                 case META:
-                    printf("META\n");               
+                    printf("META\n");
+                    printf("File name : %s\n",dataInfo.fileMeta.fileName);                   
                     checkFile(&ctx,&dataInfo);
                     sendCheckData(&sockInfo, &dataInfo);
                     break;
@@ -72,8 +73,6 @@ int main(int argc, char *argv[])
                 case INTE:
                     sendIntegrity(&sockInfo, &dataInfo);
                     break;
-                default:
-                    printf("eeeeee\n");
             }
 
         }
