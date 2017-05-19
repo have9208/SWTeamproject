@@ -5,7 +5,7 @@
 #include "serverNetwork.h"
 #include "print.h"
 
-void serverSocket(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
+void serverSocket(SocketInfo *sockInfo)
 {
     int sockId, addrLen = sizeof(struct sockaddr);
     
@@ -31,9 +31,6 @@ void serverSocket(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     sockInfo->sockId = sockId;
     sockInfo->addrLen = addrLen;
 
-    printDelete("change META");
-    dataInfo->type = META;
-
     if(sockInfo->protocol == TCP)
     {
         printNotice("TCP Socket bind success.");
@@ -54,8 +51,11 @@ void serverSocket(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 
 }
 
-int acceptComp(SocketInfo *sockInfo)
+int acceptComp(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
+    printDelete("change META");
+    dataInfo->type = META;
+
     if(sockInfo->protocol == TCP)
     {
         if( (sockInfo->cliSockId = accept(sockInfo->sockId, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen))) == -1 )

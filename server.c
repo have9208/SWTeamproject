@@ -40,11 +40,11 @@ int main(int argc, char *argv[])
             break;
     }
     
-    serverSocket(&sockInfo, &dataInfo);
+    serverSocket(&sockInfo);
     sockId = sockInfo.sockId;
     oldSignal = signal(SIGINT, exitSignal);
 
-    while( acceptComp(&sockInfo) )
+    while( acceptComp(&sockInfo, &dataInfo) )
     {
         while( (nbyte = receive(&sockInfo, &dataInfo)) != -1 )
         {
