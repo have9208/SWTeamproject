@@ -172,6 +172,7 @@ int receiveMeta(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     int nbyte = recvComp(sockInfo, (char *)&(dataInfo->fileMeta), sizeof(dataInfo->fileMeta));
     dataInfo->currentSize = 0;
+    printf("fileName >>>>>>> %s\n",dataInfo->fileMeta.fileName);
     printAdd("fileMetaData load.");
     return nbyte;
 }
