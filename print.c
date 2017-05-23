@@ -46,7 +46,7 @@ void printSpeedByte(struct timeval start, struct timeval end, int size, int nows
     int rest = 0;
 
     char msg[64];
-    int s, m;
+    int s, m, i;
     double p;
 
     byte = end.tv_usec - start.tv_usec;
@@ -82,7 +82,7 @@ void printSpeedByte(struct timeval start, struct timeval end, int size, int nows
 
     m = (((double)nowsize / maxsize) * s);
 
-    for (int i = 0; i < s; i++)
+    for (i = 0; i < s; i++)
     {
         if (i < m)
         {
@@ -90,7 +90,7 @@ void printSpeedByte(struct timeval start, struct timeval end, int size, int nows
         }
         else
         {
-            printf(" ");
+            printf("-");
         }
     }
 
