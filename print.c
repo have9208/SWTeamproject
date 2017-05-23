@@ -2,24 +2,28 @@
 
 void printNotice(char *msg)
 {
+    clearLine();
     printf("[*] ");
     printf("%s\n", msg);
 }
 
 void printError(char *msg)
 {
+    clearLine();
     printf("\x1B[31m[!]\x1B[0m ");
     printf("%s\n", msg);
 }
 
 void printAdd(char *msg)
 {
+    clearLine();
     printf("\x1B[32m[+]\x1B[0m ");
     printf("%s\n", msg);
 }
 
 void printDelete(char *msg)
 {
+    clearLine();
     printf("\x1B[33m[-]\x1B[0m ");
     printf("%s\n", msg);
 }
@@ -42,7 +46,7 @@ void printSpeedByte(struct timeval start, struct timeval end, int size, int nows
     int rest = 0;
 
     char msg[64];
-    int s, m;
+    int s, m, i;
     double p;
 
     byte = end.tv_usec - start.tv_usec;
@@ -74,11 +78,11 @@ void printSpeedByte(struct timeval start, struct timeval end, int size, int nows
     p = byte + ((double)rest / 1024);
 
     s = getConsoleWidth();
-    s -= sprintf(msg, "   %5.1f%cB/s\r", p, unit);
+    s -= sprintf(msg, "|  %5.1f%cB/s\r", p, unit);
 
     m = (((double)nowsize / maxsize) * s);
 
-    for (int i = 0; i < s; i++)
+    for (i = 0; i < s; i++)
     {
         if (i < m)
         {
@@ -99,4 +103,26 @@ int getConsoleWidth()
     ioctl(0, TIOCGWINSZ, &w);
 
     return w.ws_col;
+}
+
+void clearLine()
+{
+    int i, s = getConsoleWidth();
+
+    for (i = 0; i < s; i++)
+    {
+        printf(" ");
+    }
+    printf("\r");
+}
+
+void printHash(char* hash)
+{
+    int i;
+    printf("[*] HASH: ");
+    for (i = 0; i < HASH_SIZE; i+=4)
+    {
+        printf("%08x", *(int*)&hash[i]);
+    }
+    puts("");
 }

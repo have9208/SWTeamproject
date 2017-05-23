@@ -61,6 +61,7 @@ void closeSocket(NetworkInfo* n)
 
 void sendBuffer(NetworkInfo* n, void* data, int size)
 {
+    usleep(50);
     if (n->p == TCP)
     {
         send(n->sock, data, size, 0);
@@ -71,135 +72,222 @@ void sendBuffer(NetworkInfo* n, void* data, int size)
     }
 }
 
-void sendFile(NetworkInfo* n, char* parent, char* fileName)
+void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
 {
-    int i;
-    DataFile* file;
-    FileMetadata meta = { 0 };
-    char buf[MAX_FILE_NAME_LENGTH] = "";
+    char *fullName = makeFullPath(parent, fileName), *hash, input;
+    FileMetadata *meta;
     MetaDir *dir;
+    NetworkInfo* n;
+    int i, fd;
+    FileCheckData error;
+    enum ServerCommandCode code;
 
-    if (strcmp(parent, ""))
+    // Directory
+    if (isDir(fullName))
     {
-        strcpy(buf, parent);
-        strcat(buf, "/");
-        strcat(buf, fileName);
-    }
-    else
-    {
-        strcpy(buf, fileName);
-    }
-    
-    if (isDir(buf))
-    {
-        printAdd(buf);
+        printAdd(fullName);
+
+        n = connectSocket(netMeta->ip, netMeta->port, (netMeta->protocol == UDP ? UDP : TCP));
         
-        dir = listDirectory(buf);
-        meta.size = dir->childs;
-        meta.type = DIR_TYPE;
-        strcpy(meta.parent, parent);
-        strcpy(meta.fileName, fileName);
-        sendFileMetadata(n, &meta);
-        for (i = 0; i < dir->childs; i++)
+        dir = listDirectory(fullName);
+        meta = makeFileMetadata(DIR_TYPE, 0, parent, fileName);
+
+        error = sendFileMetadata(n, meta);
+
+        closeSocket(n);
+
+        if (error.error != OTHER_ERR)
         {
-            sendFile(n, buf, dir->files[i].fileName);
+            for (i = 0; i < dir->childs; i++)
+            {
+                sendFile(netMeta, fullName, dir->files[i].fileName);
+            }
         }
 
         closeDirectory(dir);
-        printDelete(buf);
+        closeFileMetadata(meta);
+        printDelete(fullName);
     }
+    // Data file
     else
     {
         printNotice(fileName);
-        file = readFile(buf);
-        if (file != 0)
+
+        i = getFileSize(fullName);
+        fd = openFile(fullName);
+        meta = makeFileMetadata(FILE_TYPE, i, parent, fileName);
+
+        // Check Protocol
+        if (netMeta->protocol == AUTO)
         {
-            strcpy(meta.fileName, fileName);
-            strcpy(meta.parent, parent);
-            meta.size = file->fileSize;
-            meta.type = FILE_TYPE;
-
-            if (meta.size == 0)
+            if (i <= 64 * 1024)
             {
-                meta.size = 1;
-                file->file[0] = '\0';
-            }
-
-            sendFileMetadata(n, &meta);
-            sendFileData(n, file);
-            sendHash(n, file->hash);
-
-            if (!recvResult(n))
-            {
-                printError("Crash !!");
+                n = connectSocket(netMeta->ip, netMeta->port, UDP);
             }
             else
             {
-                // printNotice("Success !!");
+                n = connectSocket(netMeta->ip, netMeta->port, TCP);
             }
-
-            closeDataFile(file);
         }
+        else
+        {
+            n = connectSocket(netMeta->ip, netMeta->port, netMeta->protocol);
+        }
+
+        error = sendFileMetadata(n, meta);
+
+        switch (error.error)
+        {
+            case NONE_ERR:
+                code = REWRITE;
+                break;
+            case EXIST_ERR:
+                if (error.size == -1)
+                {
+                    hash = getHash(fd, i);
+                    
+                    if (hashCheck(hash, error.hash))
+                    {
+                        code = IGNORE;
+                    }
+                    else
+                    {
+                        printf("다른 파일이 존재합니다. 덮어쓰시겠습니까? (Y/N) ");
+                        scanf("%c", &input);
+                        if (input == 'Y' || input == 'y')
+                        {
+                            code = REWRITE;
+                        }
+                        else
+                        {
+                            code = IGNORE;
+                        }
+                    }
+                }
+                else
+                {
+                    hash = getHash(fd, error.size);
+
+                    if (hashCheck(hash, error.hash))
+                    {
+                        code = APPEND;
+                    }
+                    else
+                    {
+                        code = REWRITE;
+                    }
+                    free(hash);
+                }
+
+                sendServerCommandCode(n, code);
+
+                break;
+            case OTHER_ERR:
+                code = IGNORE;
+                break;
+            default:
+                printError("recvFileCheckData Error Code");
+        }
+
+        hash = getHash(fd, i);
+        switch (code)
+        {
+            case APPEND:
+                sendFileData(n, fd, error.size, i - error.size);
+                sendHash(n, hash);
+                break;
+            case REWRITE:
+                sendFileData(n, fd, 0, i);
+                sendHash(n, hash);
+                break;
+        }
+
+        free(hash);
+        closeSocket(n);
+        closeFileMetadata(meta);
+        close(fd);
     }
 }
 
-void sendFileData(NetworkInfo* n, DataFile* file)
+void sendFileData(NetworkInfo* n, int fd, int offset, int size)
 {
-    int i, c, end, size = 0, now = 0;
-    char* data = file->file;
+    int i, c, end, len = 0;
     struct timeval after, before, start;
-    char msg[64];
+    char *buf;
 
-    c = (file->fileSize / BLOCK_SIZE);
-    end = ((file->fileSize % BLOCK_SIZE) ? 1 : 0);
-
+    c = (size / BLOCK_SIZE);
+    end = ((size % BLOCK_SIZE) ? 1 : 0);
 
     gettimeofday(&after, NULL);
     gettimeofday(&start, NULL);
 
     for (i = 0; i < c; i++)
     {
-        usleep(30);
         if (!(i % 40))
         { 
             before = after;
         }
-        sendBuffer(n, &data[i * BLOCK_SIZE], BLOCK_SIZE);
-        size += BLOCK_SIZE;
-        now += BLOCK_SIZE;
+
+        buf = fileSequenceChk(fd, offset, BLOCK_SIZE);
+        sendBuffer(n, buf, BLOCK_SIZE);
+        free(buf);
+
+        offset += BLOCK_SIZE;
+        len += BLOCK_SIZE;
 
         if (!(i % 40))
         {
             gettimeofday(&after, NULL);
-            printSpeedByte(before, after, size, now, file->fileSize);
-            size = 0;
+            printSpeedByte(before, after, len, offset, size);
+            len = 0;
         }
     }
 
     if (end)
     {
-        sendBuffer(n, &data[i * BLOCK_SIZE], file->fileSize % BLOCK_SIZE);
-        size += file->fileSize % BLOCK_SIZE;
-        now += BLOCK_SIZE;
+        i = size % BLOCK_SIZE;
+        buf = fileSequenceChk(fd, offset, i);
+        sendBuffer(n, buf, i);
+        free(buf);
+
+        offset += i;
+        len += i;
     }
 
     gettimeofday(&after, NULL);
 
-    printSpeedByte(start, after, file->fileSize, now, file->fileSize);
-    puts("");
+    printSpeedByte(start, after, size, offset, size);
+
 }
 
-void sendFileMetadata(NetworkInfo* n, FileMetadata* meta)
+FileCheckData sendFileMetadata(NetworkInfo* n, FileMetadata* meta)
 {
+    FileCheckData check;
     sendBuffer(n, meta, sizeof(*meta));
+
+    check = recvFileCheckData(n);
+
+    return check;
 }
 
 void sendHash(NetworkInfo* n, unsigned char* hash)
 {
-    usleep(500);
     sendBuffer(n, hash, HASH_SIZE);
+
+    if (!recvResult(n))
+    {
+        printError("Crash !!");
+    }
+    else
+    {
+        // printNotice("Success !!");
+    }
 }
 
+void sendServerCommandCode(NetworkInfo* n, enum ServerCommandCode code)
+{
+    sendBuffer(n, (char*)&code, sizeof(code));
+}
 
 char* recvBuffer(NetworkInfo* n, int size)
 {
@@ -222,4 +310,56 @@ char recvResult(NetworkInfo* n)
     char result = *buf;
     free(buf);
     return result;
+}
+
+FileCheckData recvFileCheckData(NetworkInfo* n)
+{
+    FileCheckData* tmp = (FileCheckData*)recvBuffer(n, sizeof(FileCheckData));
+    FileCheckData result = *tmp;
+    free(tmp);
+
+    return result;
+}
+
+/* File Info */
+char* makeFullPath(char* parent, char* fileName)
+{
+    int len = strlen(parent) + 1 + strlen(fileName) + 1;
+    char* buf = malloc(sizeof(char) * len);
+
+    if (strcmp(parent, ""))
+    {
+        strcpy(buf, parent);
+        strcat(buf, "/");
+        strcat(buf, fileName);
+    }
+    else
+    {
+        strcpy(buf, fileName);
+    }
+
+    return buf;
+}
+
+FileMetadata* makeFileMetadata(enum fileType type, int size, char* parent, char* fileName)
+{
+    FileMetadata* meta = malloc(sizeof(FileMetadata));
+
+    meta->type = type;
+    meta->size = size;
+    strcpy(meta->parent, parent);
+    strcpy(meta->fileName, fileName);
+
+    return meta;
+}
+
+void closeFileMetadata(FileMetadata* meta)
+{
+    free(meta);
+}
+
+/* Hash */
+int hashCheck(char* org, char* recv)
+{
+    return memcmp(org, recv, HASH_SIZE) ? 0 : 1;
 }
