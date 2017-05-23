@@ -78,7 +78,7 @@ void printSpeedByte(struct timeval start, struct timeval end, int size, int nows
     p = byte + ((double)rest / 1024);
 
     s = getConsoleWidth();
-    s -= sprintf(msg, "   %5.1f%cB/s\r", p, unit);
+    s -= sprintf(msg, "|  %5.1f%cB/s\r", p, unit);
 
     m = (((double)nowsize / maxsize) * s);
 
@@ -90,7 +90,7 @@ void printSpeedByte(struct timeval start, struct timeval end, int size, int nows
         }
         else
         {
-            printf("-");
+            printf(" ");
         }
     }
 
