@@ -93,14 +93,19 @@ int recvComp(SocketInfo *sockInfo, char *buffer, int size)
 
 int sendComp(SocketInfo *sockInfo, char *buffer, int size)
 {
+    int i;
+    
     if(sockInfo->protocol == UDP)
     {
-        return sendto(sockInfo->sockId, buffer, size, 0, (struct sockaddr*)&(sockInfo->cliAddr), sockInfo->addrLen);
+         i= sendto(sockInfo->sockId, buffer, size, 0, (struct sockaddr*)&(sockInfo->cliAddr), sockInfo->addrLen);
     }
     else
     {
-        return send(sockInfo->cliSockId, buffer, size, 0);
+        i= send(sockInfo->cliSockId, buffer, size, 0);
     }
+    printf("send size =======> : %d \n",i);
+    return i;
+    
 }
 
 void sendCheckData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
@@ -125,7 +130,7 @@ void sendCheckData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     }
 
     memcpy(checkData.hash, dataInfo->servHash, HASH_SIZE);
-    checkData.size = (seq == -1)? seq : seq * BLOCK_SIZE;
+    checkData.size = (seq == -1)? seq : seq;
     sendComp(sockInfo, (char *)&checkData, sizeof(checkData));
 }
 
@@ -133,15 +138,22 @@ void sendIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     char boolean = (char)(memcmp(dataInfo->servHash, dataInfo->cliHash, HASH_SIZE) == 0);
 
+    printf("Server Hash ");
+    printHash(dataInfo->servHash);
+    printf("Client Hash ");
+    printHash(dataInfo->cliHash);
     if(boolean == 0)
     {
-        printNotice("integrity fail."); 
+        printNotice("integrity fail.");
+        close(dataInfo->fileDescriptor);
+        remove(dataInfo->pathFile);
     }
     else
     {
-        printNotice("integrity success."); 
+        printNotice("integrity success.");
+        close(dataInfo->fileDescriptor); 
     }
-
+    
     printDelete("change META");
     dataInfo->type = META;
     sendComp(sockInfo, &boolean, 1);
@@ -150,7 +162,9 @@ void sendIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 int receiveData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     int remainterSize = dataInfo->fileMeta.size - dataInfo->currentSize;
+    printf("remainderSize = %d\n", remainterSize);
     int size = (remainterSize >= BLOCK_SIZE)? BLOCK_SIZE : remainterSize;
+    printf("size == >%d\n",size);
     int nbyte = recvComp(sockInfo, dataInfo->buffer, size);
     printf("nbyte: %d\n",nbyte);
 
@@ -164,6 +178,7 @@ int receiveData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     dataInfo->currentSize += nbyte;
 
     printAdd("load data");
+    printf("recivedData in buffer[0] == > %02x\n",dataInfo->buffer[0]);
 
     return nbyte;
 }

@@ -53,12 +53,13 @@ int main(int argc, char *argv[])
                 printNotice("Close client connection.");
                 break;
             }
-            printf("NOW : %d\n",dataInfo.type);
+            printf("buffer[0] = %02x\n",dataInfo.buffer[0]);
             switch(dataInfo.type)
             {           
                 case META:
                     printf("META\n");
-                    printf("File name : %s\n",dataInfo.fileMeta.fileName);                   
+                    printf("File name : %s\n",dataInfo.fileMeta.fileName);       
+                    //printf("Meta buffer :%s\n",dataInfo.buffer);            
                     checkFile(&ctx,&dataInfo);
                     sendCheckData(&sockInfo, &dataInfo);
                     break;
@@ -67,10 +68,11 @@ int main(int argc, char *argv[])
                     verifyFile(&dataInfo);
                     break;
                 case DATA:
-                    printf("DATA\n");
+                    printf("DATA\n");   
                     writeFile(&ctx,&dataInfo);
                     break;
                 case INTE:
+                    printf("INTE\n");
                     sendIntegrity(&sockInfo, &dataInfo);
                     break;
             }
