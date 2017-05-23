@@ -113,7 +113,7 @@ void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
         printNotice("end load data");       
     }
 }
-int checkHash(RecievedDataInfo *RDI)
+char checkHash(RecievedDataInfo *RDI)
 {
     char boolean = (char)(memcmp(RDI->servHash, RDI->cliHash, HASH_SIZE) == 0);
     RDI->type=META;

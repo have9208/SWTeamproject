@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
                     break;
                 case INTE:
                     printf("INTE\n");
-                    sendIntegrity(&sockInfo, checkHash(&datainfo));
+                    sendIntegrity(&sockInfo, checkHash(&dataInfo));
                     break;
             }
 
