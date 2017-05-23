@@ -62,7 +62,6 @@ void closeSocket(NetworkInfo* n)
 void sendBuffer(NetworkInfo* n, void* data, int size)
 {
     usleep(50);
-    printf("data: %s\n", (char*)data);
     if (n->p == TCP)
     {
         send(n->sock, data, size, 0);
@@ -140,23 +139,15 @@ void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
         switch (error.error)
         {
             case NONE_ERR:
-                printNotice("NONE_ERR");
                 code = REWRITE;
                 break;
             case EXIST_ERR:
-                printNotice("EXIST_ERR");
-                printf("%d\n", error.size);
                 if (error.size == -1)
                 {
-                    printNotice("hashCheck");
                     hash = getHash(fd, i);
-                    
-                    printHash(hash);
-                    printHash(error.hash);
                     
                     if (hashCheck(hash, error.hash))
                     {
-                        printNotice("hash OK");
                         code = IGNORE;
                     }
                     else
@@ -177,28 +168,21 @@ void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
                 {
                     hash = getHash(fd, error.size);
 
-                    printHash(hash);
-                    printHash(error.hash);
-
                     if (hashCheck(hash, error.hash))
                     {
-                        printNotice("EXIST_ERR");
                         code = APPEND;
                     }
                     else
                     {
-                        printNotice("EXIST_ERR");
                         code = REWRITE;
                     }
                     free(hash);
                 }
 
-                printf("code: %x\n", code);
                 sendServerCommandCode(n, code);
 
                 break;
             case OTHER_ERR:
-                printNotice("OTHER_ERR");
                 code = IGNORE;
                 break;
             default:
@@ -209,12 +193,10 @@ void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
         switch (code)
         {
             case APPEND:
-                printNotice("APPEND");
                 sendFileData(n, fd, error.size, i - error.size);
                 sendHash(n, hash);
                 break;
             case REWRITE:
-                printNotice("REWRITE");
                 sendFileData(n, fd, 0, i);
                 sendHash(n, hash);
                 break;
@@ -283,8 +265,6 @@ FileCheckData sendFileMetadata(NetworkInfo* n, FileMetadata* meta)
     FileCheckData check;
     sendBuffer(n, meta, sizeof(*meta));
 
-    printf("name: %s\n", meta->fileName);
-
     check = recvFileCheckData(n);
 
     return check;
@@ -294,8 +274,6 @@ void sendHash(NetworkInfo* n, unsigned char* hash)
 {
     sendBuffer(n, hash, HASH_SIZE);
 
-    printHash(hash);
-    printNotice("Hash!!");
     if (!recvResult(n))
     {
         printError("Crash !!");
