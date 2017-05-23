@@ -19,5 +19,6 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI);
 void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI);
 void verifyFile(RecievedDataInfo *RDI);
 void deleteFile(RecievedDataInfo *RDI);
+int checkHash(RecievedDataInfo *RDI);
 
 #endif

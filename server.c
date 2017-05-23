@@ -10,7 +10,6 @@ void (*oldSignal)(int);
 
 void exitSignal(int sig)
 {
-    printf("test");
     if(protocolPid != 0)
     {
         kill(protocolPid, SIGINT);
@@ -53,13 +52,11 @@ int main(int argc, char *argv[])
                 printNotice("Close client connection.");
                 break;
             }
-            printf("buffer[0] = %02x\n",dataInfo.buffer[0]);
             switch(dataInfo.type)
             {           
                 case META:
                     printf("META\n");
-                    printf("File name : %s\n",dataInfo.fileMeta.fileName);       
-                    //printf("Meta buffer :%s\n",dataInfo.buffer);            
+                    printf("File name : %s\n",dataInfo.fileMeta.fileName);                 
                     checkFile(&ctx,&dataInfo);
                     sendCheckData(&sockInfo, &dataInfo);
                     break;
@@ -73,7 +70,7 @@ int main(int argc, char *argv[])
                     break;
                 case INTE:
                     printf("INTE\n");
-                    sendIntegrity(&sockInfo, &dataInfo);
+                    sendIntegrity(&sockInfo, checkHash(&datainfo));
                     break;
             }
 

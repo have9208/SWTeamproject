@@ -20,7 +20,7 @@ typedef struct RecievedDataInfo
     int size;
     int currentSize;
     int fileDescriptor;
-    int fileSequence;
+    int fileSize;
     SHA256_CTX ctx;
     FileMetadata fileMeta;
 }RecievedDataInfo;

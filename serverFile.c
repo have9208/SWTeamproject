@@ -5,7 +5,6 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     char pathFile[256] = "data/";
     char tmpFile[256] = "tmp/";
     char mkdirCmd[256] = "mkdir -p ";
-    printf("HASH INIT_checkFile\n");
     sha256_init(ctx);
     strcpy(RDI->servHash, "");
     strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
@@ -14,12 +13,10 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
     {
         strncat(mkdirCmd,tmpFile,strlen(tmpFile)); // Make tmp directory
         system(mkdirCmd);
-
         strcpy(mkdirCmd,"mkdir -p ");
         strncat(mkdirCmd,pathFile,strlen(pathFile));
         strcat(mkdirCmd,"/");
-        strncat(mkdirCmd, RDI->fileMeta.fileName, strlen(RDI->fileMeta.fileName));
-        printAdd(mkdirCmd);      
+        strncat(mkdirCmd, RDI->fileMeta.fileName, strlen(RDI->fileMeta.fileName));   
         if(system(mkdirCmd)) //When directory name is same as file name
         {
             printError("Directory name is same as file name in CWD"); // MKDIR_ERR
@@ -56,38 +53,32 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
             {
                 printError("There are existed file.");
                 RDI->fileDescriptor = open(RDI->pathFile, O_RDWR | O_CREAT | O_APPEND, 0644);
-                RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END);
-                int offset = RDI->fileSequence / BLOCK_SIZE;
-                printf("File Name ==> %s\n",RDI->pathFile);
-                printf("File Sequence ==> %d\n",RDI->fileSequence);
-                printf("File size ==>%d\n",RDI->size);
+                RDI->fileSize = (int)lseek(RDI->fileDescriptor,0,SEEK_END);
+                int offset = RDI->fileSize / BLOCK_SIZE;
+                
                 lseek(RDI->fileDescriptor,0,SEEK_SET);
                 for(int i=0;i<offset;i++)
                 {
                     read(RDI->fileDescriptor,RDI->buffer,BLOCK_SIZE);
-                    //printf("---> %d\n",i);
                     sha256_update(ctx, RDI->buffer, BLOCK_SIZE);
                 }
                 if(RDI->size % BLOCK_SIZE != 0)
                 {
-                    //printf("size ---> %d \n",RDI->fileMeta.size % (BLOCK_SIZE));
                     read(RDI->fileDescriptor,RDI->buffer,RDI->fileMeta.size % (BLOCK_SIZE));
-                    //printf("read data ===> %s \n",RDI->buffer);
                     sha256_update(ctx, RDI->buffer, RDI->fileMeta.size % (BLOCK_SIZE));
                 }             
                 sha256_final(ctx, RDI->servHash);
                 sha256_init(ctx);  
-                RDI->fileSequence = -1;
+                RDI->fileSize = -1;
                 RDI->type = CHK;
                 printHash(RDI->servHash);
             }
             else if ((RDI->fileDescriptor = open( RDI->tmpFile, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1)
             {
-                //printf("Tmp file path : %s\n",tmpFile);
                 printError("There are existed canceled file.");
                 RDI->fileDescriptor = open(RDI->tmpFile, O_RDWR | O_CREAT | O_APPEND, 0644);
-                RDI->fileSequence = (int)lseek(RDI->fileDescriptor,0,SEEK_END);
-                int offset = RDI->fileSequence / BLOCK_SIZE;
+                RDI->fileSize = (int)lseek(RDI->fileDescriptor,0,SEEK_END);
+                int offset = RDI->fileSize / BLOCK_SIZE;
                 lseek(RDI->fileDescriptor,0,SEEK_SET);
                 for(int i=0;i<offset;i++)
                 {
@@ -96,8 +87,8 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
                 }
                 if(offset==0)
                 {
-                    read(RDI->fileDescriptor,RDI->buffer,RDI->fileSequence);
-                    sha256_update(ctx, RDI->buffer, RDI->fileSequence);
+                    read(RDI->fileDescriptor,RDI->buffer,RDI->fileSize);
+                    sha256_update(ctx, RDI->buffer, RDI->fileSize);
                 } 
                 RDI->type = CHK;
                 sha256_final(ctx, RDI->servHash);
@@ -112,28 +103,40 @@ void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI)
 {
     write( RDI->fileDescriptor, RDI->buffer, RDI->size);
-
-    printf("Write Buffer =======> %02x\n",RDI->buffer[0]);
     sha256_update(ctx, RDI->buffer, RDI->size); 
-    printf("RDI->size : %d\n",RDI->size);
-    printf("currentSize : %d\n",RDI->currentSize);
-    printf("fileSize : %d\n",RDI->fileMeta.size);
-    printf("name : %s\n",RDI->fileMeta.fileName);
     if( RDI->currentSize >= RDI->fileMeta.size )
     {
         rename(RDI->tmpFile,RDI->pathFile);
         printDelete("change INTE");
         RDI->type = INTE;
         sha256_final(ctx, RDI->servHash);
-        //close(RDI->fileDescriptor);
-        printNotice("end load data");
+        printNotice("end load data");       
     }
 }
+int checkHash(RecievedDataInfo *RDI)
+{
+    char boolean = (char)(memcmp(RDI->servHash, RDI->cliHash, HASH_SIZE) == 0);
+    RDI->type=META;
+    if(boolean == 0)
+    {
+        printNotice("integrity fail.");
+        close(RDI->fileDescriptor);
+        remove(RDI->pathFile);
+        return 0;
+    }
+    else
+    {
+        printNotice("integrity success.");
+        close(RDI->fileDescriptor); 
+        return 1;
+    }
+}
+
+
 
 void verifyFile(RecievedDataInfo *RDI)
 {
     // Argu List : error ,  verified, ignore
-    //printf("buffer = %d\n",RDI->buffer[0]);
     if(RDI->buffer[0] == REWRITE ) // When file is corrupted ( file overwrite, rewrite )
     {
         printf("REWRITE\n");
@@ -144,10 +147,10 @@ void verifyFile(RecievedDataInfo *RDI)
     }
     else if(RDI->buffer[0] == APPEND) // When file keep going to download (with tmp file)
     {    
-        int offset = RDI->fileSequence / BLOCK_SIZE;
+        int offset = RDI->fileSize / BLOCK_SIZE;
         printf("APPEND\n");
-        lseek(RDI->fileDescriptor,RDI->fileSequence,SEEK_SET);
-        RDI->currentSize = RDI->fileSequence;
+        lseek(RDI->fileDescriptor,RDI->fileSize,SEEK_SET);
+        RDI->currentSize = RDI->fileSize;
         RDI->type=DATA;    
     }
     else if(RDI->buffer[0] == IGNORE) // When file is already existed and ignored
