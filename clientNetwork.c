@@ -257,7 +257,7 @@ void sendFileData(NetworkInfo* n, int fd, int offset, int size)
         {
             gettimeofday(&after, NULL);
             printSpeedByte(before, after, len, offset, size);
-            size = 0;
+            len = 0;
         }
     }
 
