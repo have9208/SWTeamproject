@@ -15,10 +15,10 @@
 
 typedef struct RecievedDataInfo RecievedDataInfo;
 
-void hashCalculate(SHA256_CTX *ctx,RecievedDataInfo *RDI);
 void checkFile(SHA256_CTX *ctx,RecievedDataInfo *RDI);
 void writeFile(SHA256_CTX *ctx,RecievedDataInfo *RDI);
 void verifyFile(RecievedDataInfo *RDI);
 void deleteFile(RecievedDataInfo *RDI);
+char checkHash(RecievedDataInfo *RDI);
 
 #endif
