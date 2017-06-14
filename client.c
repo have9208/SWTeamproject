@@ -5,7 +5,7 @@ int main(int argc, char* argv[])
     int opt;
     char *ip, fileName[MAX_FILE_NAME_LENGTH], mode = 0;
     enum NetworkProtocol protocol;
-    NetworkInfo* n;
+    NetworkMetaInfo info;
 
     while((opt = getopt(argc, argv, "l:f:p:")) != -1)
     {
@@ -52,14 +52,14 @@ int main(int argc, char* argv[])
 
     if (!(mode & MODE_PROTOCOL))
     {
-        protocol = TCP;
+        protocol = AUTO;
     }
 
-    n = connectSocket(ip, PORT, protocol);
+    memcpy(info.ip, ip, 16);
+    info.port = PORT;
+    info.protocol = protocol;
 
-    sendFile(n, "", fileName);
-
-    closeSocket(n);
+    sendFile(&info, "", fileName);
 
     return 0;
 }

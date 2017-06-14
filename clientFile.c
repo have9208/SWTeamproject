@@ -26,7 +26,7 @@ char* fileSequenceChk(int fd,int offset,int len)
     {
         printError("read() error \n");
         close(fd);
-        return -1;
+        return (char*)-1;
     }
     
     return file;
