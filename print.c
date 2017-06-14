@@ -46,7 +46,7 @@ void printSpeedByte(struct timeval start, struct timeval end, int size, int nows
     int rest = 0;
 
     char msg[64];
-    int s, m;
+    int s, m, i;
     double p;
 
     byte = end.tv_usec - start.tv_usec;
@@ -78,11 +78,11 @@ void printSpeedByte(struct timeval start, struct timeval end, int size, int nows
     p = byte + ((double)rest / 1024);
 
     s = getConsoleWidth();
-    s -= sprintf(msg, "   %5.1f%cB/s\r", p, unit);
+    s -= sprintf(msg, "|  %5.1f%cB/s\r", p, unit);
 
     m = (((double)nowsize / maxsize) * s);
 
-    for (int i = 0; i < s; i++)
+    for (i = 0; i < s; i++)
     {
         if (i < m)
         {
@@ -114,4 +114,15 @@ void clearLine()
         printf(" ");
     }
     printf("\r");
+}
+
+void printHash(char* hash)
+{
+    int i;
+    printf("[*] HASH: ");
+    for (i = 0; i < HASH_SIZE; i+=4)
+    {
+        printf("%08x", *(int*)&hash[i]);
+    }
+    puts("");
 }
