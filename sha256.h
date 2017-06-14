@@ -1,3 +1,6 @@
+#ifndef __SHA_256_H__
+#define __SHA_256_H__
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -30,3 +33,5 @@ void sha256_transform(SHA256_CTX *ctx, unsigned char data[]);
 void sha256_init(SHA256_CTX *ctx);
 void sha256_update(SHA256_CTX *ctx, unsigned char data[], unsigned int len);
 void sha256_final(SHA256_CTX *ctx, unsigned char hash[]);
+
+#endif /* __SHA_256_H__ */

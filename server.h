@@ -4,21 +4,23 @@
 #include <stdio.h>
 #include "serverFile.h"
 #include "serverNetwork.h"
+#include "network.h"
 
-enum PacketType {META=1,SEQ=2,DATA=3,INTE=4};
+enum PacketType {META=1,CHK=2,DATA=3,INTE=4};
 
 typedef struct RecievedDataInfo
 {
+    char error; 
     char buffer[BLOCK_SIZE];
-    char tmpFile[256];
     char pathFile[256];
+    char tmpFile[256];
     unsigned char servHash[HASH_SIZE];
     unsigned char cliHash[HASH_SIZE];
     int type;
     int size;
     int currentSize;
     int fileDescriptor;
-    int fileSequence;
+    int fileSize;
     SHA256_CTX ctx;
     FileMetadata fileMeta;
 }RecievedDataInfo;
