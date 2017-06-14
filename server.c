@@ -10,7 +10,6 @@ void (*oldSignal)(int);
 
 void exitSignal(int sig)
 {
-    printf("test");
     if(protocolPid != 0)
     {
         kill(protocolPid, SIGINT);
@@ -40,10 +39,11 @@ int main(int argc, char *argv[])
             break;
     }
     
-    serverSocket(&sockInfo, &dataInfo);
+    serverSocket(&sockInfo);
+    sockId = sockInfo.sockId;
     oldSignal = signal(SIGINT, exitSignal);
 
-    while( acceptComp(&sockInfo) )
+    while( acceptComp(&sockInfo, &dataInfo) )
     {
         while( (nbyte = receive(&sockInfo, &dataInfo)) != -1 )
         {
@@ -52,18 +52,26 @@ int main(int argc, char *argv[])
                 printNotice("Close client connection.");
                 break;
             }
-
-            if(dataInfo.type == META)
-            {
-                checkFile(&ctx,&dataInfo);
-            }
-            else if(dataInfo.type == DATA)
-            {
-                writeFile(&ctx,&dataInfo);
-            }
-            else if(dataInfo.type == INTE)
-            {
-                sendIntegrity(&sockInfo, &dataInfo);
+            switch(dataInfo.type)
+            {           
+                case META:
+                    printf("META\n");
+                    printf("File name : %s\n",dataInfo.fileMeta.fileName);                 
+                    checkFile(&ctx,&dataInfo);
+                    sendCheckData(&sockInfo, &dataInfo);
+                    break;
+                case CHK:
+                    printf("CHK\n");
+                    verifyFile(&dataInfo);
+                    break;
+                case DATA:
+                    printf("DATA\n");   
+                    writeFile(&ctx,&dataInfo);
+                    break;
+                case INTE:
+                    printf("INTE\n");
+                    sendIntegrity(&sockInfo, checkHash(&dataInfo));
+                    break;
             }
 
         }

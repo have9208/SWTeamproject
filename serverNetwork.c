@@ -5,7 +5,7 @@
 #include "serverNetwork.h"
 #include "print.h"
 
-void serverSocket(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
+void serverSocket(SocketInfo *sockInfo)
 {
     int sockId, addrLen = sizeof(struct sockaddr);
     
@@ -31,9 +31,6 @@ void serverSocket(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     sockInfo->sockId = sockId;
     sockInfo->addrLen = addrLen;
 
-    printDelete("change META");
-    dataInfo->type = META;
-
     if(sockInfo->protocol == TCP)
     {
         printNotice("TCP Socket bind success.");
@@ -54,8 +51,11 @@ void serverSocket(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 
 }
 
-int acceptComp(SocketInfo *sockInfo)
+int acceptComp(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
+    printDelete("change META");
+    dataInfo->type = META;
+
     if(sockInfo->protocol == TCP)
     {
         if( (sockInfo->cliSockId = accept(sockInfo->sockId, (struct sockaddr *)&(sockInfo->cliAddr), &(sockInfo->addrLen))) == -1 )
@@ -93,6 +93,7 @@ int recvComp(SocketInfo *sockInfo, char *buffer, int size)
 
 int sendComp(SocketInfo *sockInfo, char *buffer, int size)
 {
+
     if(sockInfo->protocol == UDP)
     {
         return sendto(sockInfo->sockId, buffer, size, 0, (struct sockaddr*)&(sockInfo->cliAddr), sockInfo->addrLen);
@@ -101,27 +102,38 @@ int sendComp(SocketInfo *sockInfo, char *buffer, int size)
     {
         return send(sockInfo->cliSockId, buffer, size, 0);
     }
+
 }
 
-void sendHash(SocketInfo *sockInfo, RecievedDataInfo *dataInfo){
-    sendComp(sockInfo, dataInfo->servHash, HASH_SIZE);
-}
-
-void sendIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
+void sendCheckData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
-    char boolean = (char)(memcmp(dataInfo->servHash, dataInfo->cliHash, HASH_SIZE) == 0);
+    int seq = dataInfo->fileSize;
+    FileCheckData checkData;
 
-    if(boolean == 0)
+    if(dataInfo->error)
     {
-        printNotice("integrity fail."); 
+        checkData.error = OTHER_ERR;
     }
     else
     {
-        printNotice("integrity success."); 
+        if(dataInfo->type == CHK)
+        {
+            checkData.error = EXIST_ERR;
+        }
+        else
+        {
+            checkData.error = NONE_ERR;
+        }
     }
 
+    memcpy(checkData.hash, dataInfo->servHash, HASH_SIZE);
+    checkData.size = (seq == -1)? seq : seq;
+    sendComp(sockInfo, (char *)&checkData, sizeof(checkData));
+}
+
+void sendIntegrity(SocketInfo *sockInfo, char boolean)
+{
     printDelete("change META");
-    dataInfo->type = META;
     sendComp(sockInfo, &boolean, 1);
 }
 
@@ -130,7 +142,6 @@ int receiveData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     int remainterSize = dataInfo->fileMeta.size - dataInfo->currentSize;
     int size = (remainterSize >= BLOCK_SIZE)? BLOCK_SIZE : remainterSize;
     int nbyte = recvComp(sockInfo, dataInfo->buffer, size);
-    printf("nbyte: %d\n",nbyte);
 
     if(nbyte < 0)
     {
@@ -154,8 +165,9 @@ int receiveMeta(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
     return nbyte;
 }
 
-int receiveIntegrity(SocketInfo *sockInfo, RecievedDataInfo *dataInfo){
-    int nbyte = recvComp(sockInfo, &(dataInfo->buffer[0]), 1);
+int receiveCheckResult(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
+{
+    int nbyte = recvComp(sockInfo, dataInfo->buffer, sizeof(enum ServerCommandCode));
     return nbyte;
 }
 
@@ -170,11 +182,12 @@ int receiveHash(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 
 int receive(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
-    int type = dataInfo->type;
-    switch(type)
+    switch(dataInfo->type)
     {
         case META:
             return receiveMeta(sockInfo, dataInfo);
+        case CHK:
+            return receiveCheckResult(sockInfo, dataInfo);
         case DATA:
             return receiveData(sockInfo, dataInfo);
         case INTE:
