@@ -105,6 +105,16 @@ int sendComp(SocketInfo *sockInfo, char *buffer, int size)
 
 }
 
+void sendData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
+{
+    sendComp(sockInfo, dataInfo->buffer, dataInfo->size);
+}
+
+void sendSize(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
+{
+    sendComp(sockInfo, (char *)&(dataInfo->size), sizeof(int));
+}
+
 void sendCheckData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     int seq = dataInfo->fileSize;

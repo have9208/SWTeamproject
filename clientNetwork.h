@@ -37,7 +37,7 @@ void closeSocket(NetworkInfo* n);
 
 void sendBuffer(NetworkInfo* n, void* data, int size);
 
-void sendFile(NetworkMetaInfo* n, char* parent, char* fileName);
+void sendFile(NetworkMetaInfo* n, char* parent, char* fileName, enum CommandCode command, int y, int i);
 void sendFileData(NetworkInfo* n, int fd, int offset, int size);
 FileCheckData sendFileMetadata(NetworkInfo* n, FileMetadata* meta);
 void sendHash(NetworkInfo* n, unsigned char* hash);
@@ -47,8 +47,15 @@ char* recvBuffer(NetworkInfo* n, int size);
 char recvResult(NetworkInfo* n);
 FileCheckData recvFileCheckData(NetworkInfo* n);
 
+void deleteFile(NetworkMetaInfo* netMeta, char* parent, char* fileName, enum CommandCode command);
+void sendDeleteFileMetadata(NetworkInfo* n, FileMetadata* meta);
+
+void ListFile(NetworkMetaInfo* netMeta, char* parent, char* fileName, enum CommandCode command);
+void sendListFileMetadata(NetworkInfo* n, FileMetadata* meta);
+char* recvListData(NetworkInfo* n);
+
 char* makeFullPath(char* parent, char* fileName);
-FileMetadata* makeFileMetadata(enum fileType type, int size, char* parent, char* fileName);
+FileMetadata* makeFileMetadata(enum fileType type, int size, char* parent, char* fileName, enum CommandCode command);
 void closeFileMetadata(FileMetadata* meta);
 
 int hashCheck(char* org, char* recv);

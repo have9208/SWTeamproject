@@ -72,7 +72,7 @@ void sendBuffer(NetworkInfo* n, void* data, int size)
     }
 }
 
-void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
+void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName, enum CommandCode command, int yes, int ig)
 {
     char *fullName = makeFullPath(parent, fileName), *hash, input;
     FileMetadata *meta;
@@ -90,7 +90,7 @@ void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
         n = connectSocket(netMeta->ip, netMeta->port, (netMeta->protocol == UDP ? UDP : TCP));
         
         dir = listDirectory(fullName);
-        meta = makeFileMetadata(DIR_TYPE, 0, parent, fileName);
+        meta = makeFileMetadata(DIR_TYPE, 0, parent, fileName, command);
 
         error = sendFileMetadata(n, meta);
 
@@ -100,7 +100,7 @@ void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
         {
             for (i = 0; i < dir->childs; i++)
             {
-                sendFile(netMeta, fullName, dir->files[i].fileName);
+                sendFile(netMeta, fullName, dir->files[i].fileName, command, yes, ig);
             }
         }
 
@@ -115,7 +115,7 @@ void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
 
         i = getFileSize(fullName);
         fd = openFile(fullName);
-        meta = makeFileMetadata(FILE_TYPE, i, parent, fileName);
+        meta = makeFileMetadata(FILE_TYPE, i, parent, fileName, command);
 
         // Check Protocol
         if (netMeta->protocol == AUTO)
@@ -152,8 +152,23 @@ void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
                     }
                     else
                     {
-                        printf("다른 파일이 존재합니다. 덮어쓰시겠습니까? (Y/N) ");
-                        scanf("%c", &input);
+                        if (yes || ig)
+                        {
+                            if (yes)
+                            {
+                                input = 'Y';
+                            }
+                            else if (ig)
+                            {
+                                input = 'N';
+                            }
+                        }
+                        else
+                        {
+                            printf("다른 파일이 존재합니다. 덮어쓰시겠습니까? (Y/N) ");
+                            scanf("%c", &input);
+                        }
+
                         if (input == 'Y' || input == 'y')
                         {
                             code = REWRITE;
@@ -321,6 +336,61 @@ FileCheckData recvFileCheckData(NetworkInfo* n)
     return result;
 }
 
+void deleteFile(NetworkMetaInfo* netMeta, char* parent, char* fileName, enum CommandCode command)
+{
+    NetworkInfo* n;
+    FileMetadata *meta;
+
+    n = connectSocket(netMeta->ip, netMeta->port, (netMeta->protocol == UDP ? UDP : TCP));
+
+    meta = makeFileMetadata(FILE_TYPE, 0, parent, fileName, command);
+    sendDeleteFileMetadata(n, meta);
+
+    closeSocket(n);
+}
+
+void sendDeleteFileMetadata(NetworkInfo* n, FileMetadata* meta)
+{
+    sendBuffer(n, meta, sizeof(*meta));
+}
+
+void ListFile(NetworkMetaInfo* netMeta, char* parent, char* fileName, enum CommandCode command)
+{
+    NetworkInfo* n;
+    FileMetadata *meta;
+
+    n = connectSocket(netMeta->ip, netMeta->port, (netMeta->protocol == UDP ? UDP : TCP));
+
+    meta = makeFileMetadata(FILE_TYPE, 0, parent, fileName, command);
+    sendListFileMetadata(n, meta);
+
+    closeSocket(n);
+}
+
+char* recvListData(NetworkInfo* n)
+{
+    char* tmp;
+    int size, *ti;
+    ti = (int*)recvBuffer(n, sizeof(int));
+    size = *ti;
+    free(ti);
+    tmp = (char*)recvBuffer(n, size);
+
+    return tmp;
+}
+
+void sendListFileMetadata(NetworkInfo* n, FileMetadata* meta)
+{
+    char* buf;
+    sendBuffer(n, meta, sizeof(*meta));
+
+    buf = recvListData(n);
+    printAdd(meta->parent);
+    printf("%s\n", buf);
+    printDelete(meta->parent);    
+    free(buf);
+}
+
 /* File Info */
 char* makeFullPath(char* parent, char* fileName)
 {
@@ -341,12 +411,13 @@ char* makeFullPath(char* parent, char* fileName)
     return buf;
 }
 
-FileMetadata* makeFileMetadata(enum fileType type, int size, char* parent, char* fileName)
+FileMetadata* makeFileMetadata(enum fileType type, int size, char* parent, char* fileName, enum CommandCode command)
 {
     FileMetadata* meta = malloc(sizeof(FileMetadata));
 
     meta->type = type;
     meta->size = size;
+    meta->code = command;
     strcpy(meta->parent, parent);
     strcpy(meta->fileName, fileName);
 

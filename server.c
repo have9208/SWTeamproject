@@ -8,6 +8,8 @@ int sockId;
 pid_t protocolPid;
 void (*oldSignal)(int);
 
+void run(SocketInfo *sockInfom, RecievedDataInfo *dataInfo);
+
 void exitSignal(int sig)
 {
     if(protocolPid != 0)
@@ -21,9 +23,9 @@ void exitSignal(int sig)
 
 int main(int argc, char *argv[])
 {
+    int nbyte;
     SocketInfo sockInfo;
     RecievedDataInfo dataInfo;
-    int nbyte;
     SHA256_CTX ctx;
 
     switch( (protocolPid = fork()) )
@@ -53,12 +55,26 @@ int main(int argc, char *argv[])
                 break;
             }
             switch(dataInfo.type)
-            {           
+            {
                 case META:
                     printf("META\n");
-                    printf("File name : %s\n",dataInfo.fileMeta.fileName);                 
-                    checkFile(&ctx,&dataInfo);
-                    sendCheckData(&sockInfo, &dataInfo);
+                    switch(dataInfo.fileMeta.code)
+                    {
+                        case LIST:
+                            printf("Receive list command.\n");
+                            getList(&dataInfo);
+                            sendSize(&sockInfo, &dataInfo);
+                            sendData(&sockInfo, &dataInfo);
+                            break;
+                        case UPLOAD:
+                            checkFile(&ctx,&dataInfo);
+                            sendCheckData(&sockInfo, &dataInfo);
+                            break;
+                        case DELETE:
+                            printf("Receive delete command.\n");
+                            deleteFile(&dataInfo);
+                            break;
+                    }         
                     break;
                 case CHK:
                     printf("CHK\n");
@@ -76,6 +92,7 @@ int main(int argc, char *argv[])
 
         }
     }
-
+    
+    close(sockId);
     return 0;
 }

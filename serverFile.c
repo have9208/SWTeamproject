@@ -160,3 +160,64 @@ void verifyFile(RecievedDataInfo *RDI)
         RDI->type=META; 
     }    
 }
+
+void deleteFile(RecievedDataInfo *RDI)
+{
+    char pathFile[256] = "data/";
+    char cmd[256] = "rm -rf ";
+    strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
+    strcat(pathFile,"/");
+    strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
+    strncat(cmd,pathFile,strlen(pathFile));
+    system(cmd);
+}
+
+void getList(RecievedDataInfo *RDI)
+{
+    char dirPath[128];
+    DIR *dir_info;
+    DIR *dir_info_inner;
+    struct dirent *dir_entry;
+    struct dirent *dir_entry_inner;
+    dir_info = opendir( "data/");
+    strcpy(RDI->buffer, "");
+    if ( NULL != dir_info)
+    {
+        while( dir_entry   = readdir( dir_info))
+        {
+            if(!strcmp(dir_entry->d_name, ".") || !strcmp(dir_entry->d_name, ".."))
+            {
+            }
+            else
+            {
+                strcpy(dirPath,"data/");
+                strncat(dirPath,dir_entry->d_name,strlen(dir_entry->d_name));
+                dir_info_inner = opendir(dirPath);
+                if(NULL == dir_info_inner)
+                {
+                    strncat(RDI->buffer,dir_entry->d_name,strlen(dir_entry->d_name));
+                    strcat(RDI->buffer,"\n");
+                    printf( "%s\n", dir_entry->d_name);
+                }
+                else
+                {
+                    while( dir_entry_inner   = readdir( dir_info_inner))
+                    {
+                        if(!strcmp(dir_entry_inner->d_name, ".") || !strcmp(dir_entry_inner->d_name, ".."))
+                        {
+                        }
+                        else
+                        {
+                            strncat(RDI->buffer,dir_entry_inner->d_name,strlen(dir_entry_inner->d_name));
+                            strcat(RDI->buffer,"\n");
+                            printf( "%s\n", dir_entry_inner->d_name);                          
+                        }  
+                    }
+                }
+                
+            }      
+        }
+        RDI->size = strlen(RDI->buffer);
+        closedir( dir_info);
+    }
+}
