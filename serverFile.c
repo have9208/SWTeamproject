@@ -174,8 +174,11 @@ void deleteFile(RecievedDataInfo *RDI)
 
 void getList(RecievedDataInfo *RDI)
 {
+    char dirPath[128];
     DIR *dir_info;
+    DIR *dir_info_inner;
     struct dirent *dir_entry;
+    struct dirent *dir_entry_inner;
     dir_info = opendir( "data/");
     strcpy(RDI->buffer, "");
     if ( NULL != dir_info)
@@ -187,9 +190,31 @@ void getList(RecievedDataInfo *RDI)
             }
             else
             {
-                strncat(RDI->buffer,dir_entry->d_name,strlen(dir_entry->d_name));
-                strcat(RDI->buffer," ");
-                printf( "%s\n", dir_entry->d_name);
+                strcpy(dirPath,"data/");
+                strncat(dirPath,dir_entry->d_name,strlen(dir_entry->d_name));
+                dir_info_inner = opendir(dirPath);
+                if(NULL == dir_info_inner)
+                {
+                    strncat(RDI->buffer,dir_entry->d_name,strlen(dir_entry->d_name));
+                    strcat(RDI->buffer,"\n");
+                    printf( "%s\n", dir_entry->d_name);
+                }
+                else
+                {
+                    while( dir_entry_inner   = readdir( dir_info_inner))
+                    {
+                        if(!strcmp(dir_entry_inner->d_name, ".") || !strcmp(dir_entry_inner->d_name, ".."))
+                        {
+                        }
+                        else
+                        {
+                            strncat(RDI->buffer,dir_entry_inner->d_name,strlen(dir_entry_inner->d_name));
+                            strcat(RDI->buffer,"\n");
+                            printf( "%s\n", dir_entry_inner->d_name);                          
+                        }  
+                    }
+                }
+                
             }      
         }
         RDI->size = strlen(RDI->buffer);
