@@ -72,7 +72,7 @@ void sendBuffer(NetworkInfo* n, void* data, int size)
     }
 }
 
-void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
+void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName, enum CommandCode command)
 {
     char *fullName = makeFullPath(parent, fileName), *hash, input;
     FileMetadata *meta;
@@ -90,7 +90,7 @@ void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
         n = connectSocket(netMeta->ip, netMeta->port, (netMeta->protocol == UDP ? UDP : TCP));
         
         dir = listDirectory(fullName);
-        meta = makeFileMetadata(DIR_TYPE, 0, parent, fileName);
+        meta = makeFileMetadata(DIR_TYPE, 0, parent, fileName, command);
 
         error = sendFileMetadata(n, meta);
 
@@ -100,7 +100,7 @@ void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
         {
             for (i = 0; i < dir->childs; i++)
             {
-                sendFile(netMeta, fullName, dir->files[i].fileName);
+                sendFile(netMeta, fullName, dir->files[i].fileName, command);
             }
         }
 
@@ -115,7 +115,7 @@ void sendFile(NetworkMetaInfo* netMeta, char* parent, char* fileName)
 
         i = getFileSize(fullName);
         fd = openFile(fullName);
-        meta = makeFileMetadata(FILE_TYPE, i, parent, fileName);
+        meta = makeFileMetadata(FILE_TYPE, i, parent, fileName, command);
 
         // Check Protocol
         if (netMeta->protocol == AUTO)
@@ -321,6 +321,25 @@ FileCheckData recvFileCheckData(NetworkInfo* n)
     return result;
 }
 
+void deleteFile(NetworkMetaInfo* netMeta, char* parent, char* fileName, enum CommandCode command)
+{
+    NetworkInfo* n;
+    FileMetadata *meta;
+
+    n = connectSocket(netMeta->ip, netMeta->port, (netMeta->protocol == UDP ? UDP : TCP));
+
+    meta = makeFileMetadata(FILE_TYPE, 0, parent, fileName, command);
+    sendFileMetadata(n, meta);
+
+    closeSocket(n);
+}
+
+void sendDeleteFileMetadata(NetworkInfo* n, FileMetadata* meta)
+{
+    FileCheckData check;
+    sendBuffer(n, meta, sizeof(*meta));
+}
+
 /* File Info */
 char* makeFullPath(char* parent, char* fileName)
 {
@@ -341,12 +360,13 @@ char* makeFullPath(char* parent, char* fileName)
     return buf;
 }
 
-FileMetadata* makeFileMetadata(enum fileType type, int size, char* parent, char* fileName)
+FileMetadata* makeFileMetadata(enum fileType type, int size, char* parent, char* fileName, enum CommandCode command)
 {
     FileMetadata* meta = malloc(sizeof(FileMetadata));
 
     meta->type = type;
     meta->size = size;
+    meta->code = command;
     strcpy(meta->parent, parent);
     strcpy(meta->fileName, fileName);
 
