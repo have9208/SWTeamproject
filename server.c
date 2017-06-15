@@ -62,6 +62,9 @@ int main(int argc, char *argv[])
                     {
                         case LIST:
                             printf("Receive list command.\n");
+                            getList(&dataInfo);
+                            sendSize(&sockInfo, &dataInfo);
+                            sendData(&sockInfo, &dataInfo);
                             break;
                         case UPLOAD:
                             checkFile(&ctx,&dataInfo);
@@ -69,6 +72,7 @@ int main(int argc, char *argv[])
                             break;
                         case DELETE:
                             printf("Receive delete command.\n");
+                            deleteFile(&dataInfo);
                             break;
                     }         
                     break;

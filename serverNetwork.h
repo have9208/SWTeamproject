@@ -24,6 +24,7 @@ typedef struct RecievedDataInfo RecievedDataInfo;
 void serverSocket(SocketInfo *sockInfo);
 int acceptComp(SocketInfo *sockInfo, RecievedDataInfo *dataInfo);
 int receive(SocketInfo *sockInfo, RecievedDataInfo *dataInfo);
+void sendSize(SocketInfo *sockInfo, RecievedDataInfo *dataInfo);
 void sendData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo);
 void sendCheckData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo);
 void sendIntegrity(SocketInfo *sockInfo, char boolean);
