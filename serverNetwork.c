@@ -105,6 +105,11 @@ int sendComp(SocketInfo *sockInfo, char *buffer, int size)
 
 }
 
+void sendData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
+{
+    sendComp(sockInfo, dataInfo->buffer, dataInfo->size);
+}
+
 void sendCheckData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     int seq = dataInfo->fileSize;
@@ -135,15 +140,6 @@ void sendIntegrity(SocketInfo *sockInfo, char boolean)
 {
     printDelete("change META");
     sendComp(sockInfo, &boolean, 1);
-}
-
-int receiveCmd(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
-{
-    int nbyte = recvComp(sockInfo, dataInfo->command, sizeof(CommandFormat));
-
-    printAdd("load data");
-
-    return nbyte;
 }
 
 int receiveData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
@@ -193,8 +189,6 @@ int receive(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     switch(dataInfo->type)
     {
-        case CMD:
-            return receiveCmd(sockInfo, dataInfo);
         case META:
             return receiveMeta(sockInfo, dataInfo);
         case CHK:
