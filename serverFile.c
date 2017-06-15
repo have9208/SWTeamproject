@@ -160,3 +160,39 @@ void verifyFile(RecievedDataInfo *RDI)
         RDI->type=META; 
     }    
 }
+
+void deleteFile(RecievedDataInfo *RDI)
+{
+    char pathFile[256] = "data/";
+    char cmd[256] = "rm -rf ";
+    strncat(pathFile,RDI->fileMeta.parent,strlen(RDI->fileMeta.parent));
+    strcat(pathFile,"/");
+    strncat(pathFile,RDI->fileMeta.fileName,strlen(RDI->fileMeta.fileName));
+    strncat(cmd,pathFile,strlen(pathFile));
+    system(cmd);
+}
+
+void getList(RecievedDataInfo *RDI)
+{
+    DIR *dir_info;
+    struct dirent *dir_entry;
+    dir_info = opendir( "data/");
+    strcpy(RDI->buffer, "");
+    if ( NULL != dir_info)
+    {
+        while( dir_entry   = readdir( dir_info))
+        {
+            if(!strcmp(dir_entry->d_name, ".") || !strcmp(dir_entry->d_name, ".."))
+            {
+            }
+            else
+            {
+                strncat(RDI->buffer,dir_entry->d_name,strlen(dir_entry->d_name));
+                strcat(RDI->buffer," ");
+                printf( "%s\n", dir_entry->d_name);
+            }      
+        }
+        RDI->size = strlen(RDI->buffer);
+        closedir( dir_info);
+    }
+}
