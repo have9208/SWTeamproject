@@ -2,13 +2,13 @@
 
 int main(int argc, char* argv[])
 {
-    int opt, c = 0;
+    int opt, c = 0, y = 0, i = 0;
     char *ip, fileName[MAX_FILE_NAME_LENGTH], mode = 0;
     enum NetworkProtocol protocol;
     enum CommandCode command;
     NetworkMetaInfo info;
 
-    while((opt = getopt(argc, argv, "l:f:p:rdu")) != -1)
+    while((opt = getopt(argc, argv, "l:f:p:rduyi")) != -1)
     {
         switch(opt)
         {
@@ -62,6 +62,20 @@ int main(int argc, char* argv[])
                 }
                 c = 1;
                 break;
+            case 'y':
+                if (i)
+                {
+                    printClientHelp(argv[0]);
+                }
+                y = 1;
+                break;
+            case 'i':
+                if (y)
+                {
+                    printClientHelp(argv[0]);
+                }
+                i = 1;
+                break;
             default:
                 break;
         }
@@ -93,11 +107,11 @@ int main(int argc, char* argv[])
 
     if (command == UPLOAD)
     {
-        sendFile(&info, "", fileName, command);
+        sendFile(&info, "", fileName, command, y, i);
     }
     else if (command == LIST)
     {
-        //
+        ListFile(&info, "", fileName, command);
     }
     else if (command == DELETE)
     {
