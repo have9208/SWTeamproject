@@ -18,8 +18,6 @@ enum ErrorCode { NONE_ERR, EXIST_ERR, OTHER_ERR };
 
 enum ServerCommandCode { APPEND, REWRITE, IGNORE };
 
-enum CommandCode { LIST, UPLOAD, DELETE };
-
 typedef struct FileCheckData
 {
     enum ErrorCode error;
