@@ -137,6 +137,15 @@ void sendIntegrity(SocketInfo *sockInfo, char boolean)
     sendComp(sockInfo, &boolean, 1);
 }
 
+int receiveCmd(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
+{
+    int nbyte = recvComp(sockInfo, dataInfo->command, sizeof(CommandFormat));
+
+    printAdd("load data");
+
+    return nbyte;
+}
+
 int receiveData(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     int remainterSize = dataInfo->fileMeta.size - dataInfo->currentSize;
@@ -184,6 +193,8 @@ int receive(SocketInfo *sockInfo, RecievedDataInfo *dataInfo)
 {
     switch(dataInfo->type)
     {
+        case CMD:
+            return receiveCmd(sockInfo, dataInfo);
         case META:
             return receiveMeta(sockInfo, dataInfo);
         case CHK:
